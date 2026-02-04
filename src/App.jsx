@@ -601,9 +601,11 @@ export default function App() {
     <div style={{ minHeight: '100dvh', background: t.bg, color: t.text, fontFamily: font }}>
       {/* Header */}
       <header style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${t.border}` }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <a href="https://heyitsmejosh.com" style={{ color: t.text, textDecoration: 'none', fontSize: 15, fontWeight: 700, letterSpacing: '-0.3px' }}>bread</a>
-          <span style={{ width: 1, height: 14, background: t.border }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <a href="https://heyitsmejosh.com" style={{ color: t.textSecondary, textDecoration: 'none', fontSize: 13, fontWeight: 500 }}>~</a>
+          <span style={{ color: t.textTertiary, fontSize: 13 }}>/</span>
+          <span style={{ color: t.text, fontSize: 15, fontWeight: 700, letterSpacing: '-0.3px' }}>bread</span>
+          <span style={{ width: 1, height: 14, background: t.border, marginLeft: 4 }} />
           <StatusBar t={t} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
