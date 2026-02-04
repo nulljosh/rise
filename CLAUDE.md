@@ -2,12 +2,12 @@
 
 ## ⚠️ DEPLOYMENT REMINDER
 **IMPORTANT:** When testing deployments, check the RIGHT URL:
-- **Vercel (Primary):** https://autopilot-alpha.vercel.app/ (production alias)
+- **Vercel (Primary):** https://bread-alpha.vercel.app/ (production)
 - **GitHub Pages:** https://heyitsmejosh.com/bread/ (static hosting, uses Vercel APIs)
 
 **Don't waste tokens checking GitHub Pages when you mean to check Vercel!**
 
-Note: Individual deployment URLs (bread-xxxxx.vercel.app) change each deploy - use the autopilot-alpha.vercel.app alias instead.
+Note: Individual deployment URLs (bread-xxxxx-nulljosh.vercel.app) change each deploy - use the bread-alpha.vercel.app alias instead.
 
 ---
 
