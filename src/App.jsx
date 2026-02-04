@@ -525,10 +525,14 @@ export default function App() {
       // Ignore if typing in input fields
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-      // Space bar: Toggle start/stop
-      if (e.code === 'Space' && !busted && !won) {
+      // Space bar: Reset if busted/won, otherwise toggle start/stop
+      if (e.code === 'Space') {
         e.preventDefault();
-        setRunning(r => !r);
+        if (busted || won) {
+          reset();
+        } else {
+          setRunning(r => !r);
+        }
       }
 
       // R key: Reset
@@ -774,7 +778,7 @@ export default function App() {
               <button onClick={reset} style={{ padding: 16, borderRadius: 12, border: `1px solid ${t.border}`, background: 'transparent', color: t.textSecondary, fontFamily: font, fontSize: 16, cursor: 'pointer' }}>↺</button>
             </div>
             <div style={{ textAlign: 'center', fontSize: 10, color: t.textTertiary, marginBottom: 14 }}>
-              [Space] Start/Stop • [R] Reset
+              [Space] Start/Stop/Restart • [R] Reset
             </div>
 
             <div style={{ background: t.surface, borderRadius: 12, overflow: 'hidden' }}>
