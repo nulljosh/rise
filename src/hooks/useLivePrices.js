@@ -62,8 +62,7 @@ export function useLivePrices(initialAssets) {
   const fetchCommodityPrices = useCallback(async () => {
     try {
       // Use new multi-source commodities API
-      const apiBase = import.meta.env.DEV ? '' : 'https://autopilot-alpha.vercel.app';
-      const response = await fetch(`${apiBase}/api/commodities`);
+      const response = await fetch('/api/commodities');
       if (!response.ok) throw new Error('Commodities API error');
       const data = await response.json();
 

@@ -9,8 +9,7 @@ export default function NewsWidget({ dark, t }) {
     // Fetch from api/news endpoint
     const fetchNews = async () => {
       try {
-        const apiBase = import.meta.env.DEV ? '' : 'https://autopilot-alpha.vercel.app';
-        const res = await fetch(`${apiBase}/api/news?category=business`);
+        const res = await fetch('/api/news?category=business');
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}: ${res.statusText}`);
         }
