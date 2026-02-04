@@ -7,7 +7,8 @@ export default function WeatherWidget({ t }) {
   useEffect(() => {
     const fetchWeather = async () => {
       try {
-        const res = await fetch('/api/weather?city=Vancouver');
+        const apiBase = import.meta.env.DEV ? '' : 'https://autopilot-alpha.vercel.app';
+        const res = await fetch(`${apiBase}/api/weather?city=Vancouver`);
         const data = await res.json();
         setWeather(data);
         setLoading(false);

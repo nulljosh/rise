@@ -82,7 +82,8 @@ export function useStocks(symbols = DEFAULT_SYMBOLS) {
         throw new Error('Invalid symbols: must be a non-empty array');
       }
 
-      const data = await fetchWithRetry(`/api/stocks?symbols=${symbols.join(',')}`);
+      const apiBase = import.meta.env.DEV ? '' : 'https://autopilot-alpha.vercel.app';
+      const data = await fetchWithRetry(`${apiBase}/api/stocks?symbols=${symbols.join(',')}`);
 
       // Validate response
       if (!Array.isArray(data)) {
@@ -159,7 +160,8 @@ export function useStockHistory(symbol, range = '1y') {
       setError(null);
 
       try {
-        const data = await fetchWithRetry(`/api/history?symbol=${encodeURIComponent(symbol)}&range=${range}`);
+        const apiBase = import.meta.env.DEV ? '' : 'https://autopilot-alpha.vercel.app';
+        const data = await fetchWithRetry(`${apiBase}/api/history?symbol=${encodeURIComponent(symbol)}&range=${range}`);
 
         // Validate response
         if (!data || !Array.isArray(data.history)) {

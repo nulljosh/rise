@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-// Use local proxy to avoid CORS
-const POLYMARKET_API = '/api';
+// Use Vercel API endpoints (works for both Vercel and GitHub Pages deployments)
+const POLYMARKET_API = import.meta.env.DEV ? '/api' : 'https://autopilot-alpha.vercel.app/api';
 
 // Cache for validated links (slug -> isValid)
 const linkValidationCache = new Map();
