@@ -105,28 +105,22 @@ function runSim(target = 1e9) {
     });
 
     if (best) {
-      const sizePercent = balance < 2 ? 0.65 :
-                         balance < 5 ? 0.50 :
-                         balance < 10 ? 0.32 :
-                         balance < 100 ? 0.18 :
-                         balance < 1000 ? 0.14 :
-                         balance < 10000 ? 0.10 :
-                         balance < 100000 ? 0.05 :
-                         balance < 1000000 ? 0.03 :
-                         balance < 10000000 ? 0.015 :
-                         balance < 100000000 ? 0.01 : 0.005;
-      const size = balance * sizePercent;
-      if (size < 0.001) continue;
-
-      const tpMult = 1.05;  // flat 5% TP (original)
-      const slMult = 0.983; // flat 1.7% SL (original)
+      const sizePercent = balance < 10 ? 0.65 :
+                         balance < 100 ? 0.50 :
+                         balance < 10000 ? 0.35 :
+                         balance < 1000000 ? 0.25 :
+                         balance < 100000000 ? 0.15 :
+                         0.10;
+      const sizeDollars = balance * sizePercent;
+      const shares = sizeDollars / best.price; // Convert to shares
+      if (shares < 0.0000001) continue;
 
       position = {
         sym: best.sym,
         entry: best.price,
-        size,
-        stop: best.price * slMult,
-        target: best.price * tpMult,
+        size: shares, // SHARES not dollars
+        stop: best.price * 0.983,
+        target: best.price * 1.05,
       };
       lastTraded = best.sym;
     }

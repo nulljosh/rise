@@ -15,15 +15,15 @@ const ASSETS = {
   NAS100: { name: 'Nasdaq 100', price: 22950, color: '#00d4ff' },
   SP500: { name: 'S&P 500', price: 6920, color: '#ff6b6b' },
   US30: { name: 'Dow Jones', price: 48780, color: '#4ecdc4' },
-  XAU: { name: 'Gold', price: 4890, color: '#FFD700' },
-  XAG: { name: 'Silver', price: 94, color: '#A0A0A0' },
+  XAU: { name: 'Gold', price: 4933, color: '#FFD700' },
+  XAG: { name: 'Silver', price: 92, color: '#A0A0A0' },
   // US50 - Top 50 by market cap
   AAPL: { name: 'Apple', price: 247, color: '#555' },
   MSFT: { name: 'Microsoft', price: 454, color: '#00A2ED' },
-  GOOGL: { name: 'Google', price: 323, color: '#4285F4' },
+  GOOGL: { name: 'Google', price: 331, color: '#4285F4' },
   AMZN: { name: 'Amazon', price: 220, color: '#FF9900' },
-  NVDA: { name: 'Nvidia', price: 185, color: '#76B900' },
-  META: { name: 'Meta', price: 595, color: '#0668E1' },
+  NVDA: { name: 'Nvidia', price: 178, color: '#76B900' },
+  META: { name: 'Meta', price: 668, color: '#0668E1' },
   TSLA: { name: 'Tesla', price: 421, color: '#CC0000' },
   BRK: { name: 'Berkshire', price: 465, color: '#004080' },
   LLY: { name: 'Eli Lilly', price: 785, color: '#DC143C' },
@@ -64,8 +64,8 @@ const ASSETS = {
   SPGI: { name: 'S&P Global', price: 520, color: '#FF8200' },
   // Popular stocks
   COIN: { name: 'Coinbase', price: 265, color: '#0052FF' },
-  PLTR: { name: 'Palantir', price: 71, color: '#9d4edd' },
-  HOOD: { name: 'Robinhood', price: 38, color: '#00C805' },
+  PLTR: { name: 'Palantir', price: 138, color: '#9d4edd' },
+  HOOD: { name: 'Robinhood', price: 86, color: '#00C805' },
   // Meme coins
   FARTCOIN: { name: 'FartCoin', price: 0.85, color: '#8B4513' },
   WIF: { name: 'dogwifhat', price: 1.92, color: '#FF69B4' },
@@ -365,36 +365,34 @@ export default function App() {
 
     if (best) {
       // Aggressive reduction at high balances to protect gains
-      const sizePercent = balance < 2 ? 0.65 :
-                         balance < 5 ? 0.50 :
-                         balance < 10 ? 0.32 :
-                         balance < 100 ? 0.18 :
-                         balance < 1000 ? 0.14 :
-                         balance < 10000 ? 0.10 :
-                         balance < 100000 ? 0.05 :
-                         balance < 1000000 ? 0.03 :
-                         balance < 10000000 ? 0.015 :
-                         balance < 100000000 ? 0.01 : 0.005;
+      // With shares-based sizing, PnL scales correctly - can stay aggressive
+      const sizePercent = balance < 10 ? 0.65 :
+                         balance < 100 ? 0.50 :
+                         balance < 10000 ? 0.35 :
+                         balance < 1000000 ? 0.25 :
+                         balance < 100000000 ? 0.15 :
+                         0.10;
       const size = balance * sizePercent;
+
+      // Convert dollars to shares (fixes PnL scaling across price ranges)
+      const shares = size / best.price;
+
+      // Minimum position check
+      if (shares < 0.0000001) return;
 
       // Safety check: don't open position if win would exceed target
       const target = targetTrillion ? 1000000000000 : 1000000000;
-      const maxWin = size * 0.045; // 4.5% max gain
+      const maxWin = shares * best.price * 0.05; // 5% max gain in dollars
       if (balance + maxWin > target * 1.1) {
-        // Would overshoot target by >10%, reduce position size
-        const safeSize = (target - balance) / 0.045 * 0.8; // 80% of max safe size
-        if (safeSize < size * 0.5) return; // Skip if we'd need to reduce by >50%
+        const safeShares = (target - balance) / (best.price * 0.05) * 0.8;
+        if (safeShares < shares * 0.5) return;
       }
 
-      // Minimum position check
-      if (size < 0.001) return;
-
       try {
-        // Adaptive take-profit: wider at higher balances to let winners run
         setPosition({
           sym: best.sym,
           entry: best.price,
-          size,
+          size: shares, // NOW IN SHARES, not dollars
           stop: best.price * 0.983, // 1.7% stop loss
           target: best.price * 1.05, // 5% take profit (R:R ~1:3)
         });
