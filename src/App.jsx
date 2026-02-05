@@ -351,13 +351,12 @@ export default function App() {
       const avg = recent.reduce((a, b) => a + b, 0) / 10;
       const variance = recent.reduce((a, b) => a + Math.pow((b - avg) / avg, 2), 0) / 10;
       const stddev = Math.sqrt(variance);
-      // Skip if stddev > 1.5% (too choppy for momentum entry)
-      if (stddev > 0.015) return;
+      // Skip if stddev > 2.5% (extremely choppy) - relaxed to keep more candidates
+      if (stddev > 0.025) return;
 
       const strength = (current - avg) / avg;
 
-      // Tighter thresholds at small balances (need higher conviction), looser at large
-      const minStrength = balance < 2 ? 0.006 : balance < 10 ? 0.007 : balance < 100 ? 0.008 : balance < 1000 ? 0.009 : 0.010;
+      const minStrength = balance < 2 ? 0.008 : balance < 10 ? 0.009 : balance < 100 ? 0.010 : 0.012;
 
       if (strength > minStrength && (!best || strength > best.strength)) {
         best = { sym, price: current, strength };
@@ -372,10 +371,10 @@ export default function App() {
                          balance < 100 ? 0.18 :
                          balance < 1000 ? 0.14 :
                          balance < 10000 ? 0.10 :
-                         balance < 100000 ? 0.05 :      // Cut to 5% at $10k+
-                         balance < 1000000 ? 0.03 :     // 3% at $100k+
-                         balance < 10000000 ? 0.015 :   // 1.5% at $1M+
-                         balance < 100000000 ? 0.01 : 0.005; // 0.5% at $10M+
+                         balance < 100000 ? 0.05 :
+                         balance < 1000000 ? 0.03 :
+                         balance < 10000000 ? 0.015 :
+                         balance < 100000000 ? 0.01 : 0.005;
       const size = balance * sizePercent;
 
       // Safety check: don't open position if win would exceed target
@@ -392,17 +391,12 @@ export default function App() {
 
       try {
         // Adaptive take-profit: wider at higher balances to let winners run
-        const tpMult = balance < 10 ? 1.045 :     // 4.5% TP early (quick compounds)
-                       balance < 1000 ? 1.05 :     // 5% TP
-                       balance < 100000 ? 1.06 :   // 6% TP (let winners run)
-                       balance < 10000000 ? 1.07 : // 7% TP
-                       1.08;                       // 8% TP at $10M+ (big swings needed)
         setPosition({
           sym: best.sym,
           entry: best.price,
           size,
-          stop: best.price * 0.985, // 1.5% stop loss (tight)
-          target: best.price * tpMult,
+          stop: best.price * 0.983, // 1.7% stop loss
+          target: best.price * 1.05, // 5% take profit (R:R ~1:3)
         });
         setLastTraded(best.sym);
         setTrades(t => {
