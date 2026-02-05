@@ -8,6 +8,7 @@ const Ticker = memo(({ items, theme }) => {
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const animationRef = useRef(null);
+  const dragDistance = useRef(0);
 
   // Auto-scroll animation
   useEffect(() => {
@@ -37,6 +38,7 @@ const Ticker = memo(({ items, theme }) => {
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
+    dragDistance.current = 0;
     setStartX(e.pageX - scrollRef.current.offsetLeft);
     setScrollLeft(scrollRef.current.scrollLeft);
   };
@@ -46,6 +48,7 @@ const Ticker = memo(({ items, theme }) => {
     e.preventDefault();
     const x = e.pageX - scrollRef.current.offsetLeft;
     const walk = (x - startX) * 2;
+    dragDistance.current += Math.abs(walk);
     scrollRef.current.scrollLeft = scrollLeft - walk;
   };
 
@@ -96,13 +99,20 @@ const Ticker = memo(({ items, theme }) => {
         {[...Array(4)].map((_, idx) => (
           <div key={idx} style={{ display: 'flex', gap: 24 }}>
             {items.map(item => (
-              <span key={`${item.key}-${idx}`} style={{ display: 'flex', gap: 6, fontSize: 12, opacity: 0.8 }}>
+              <a
+                key={`${item.key}-${idx}`}
+                href={`https://finance.yahoo.com/quote/${item.name}/`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => { if (dragDistance.current > 5) e.preventDefault(); }}
+                style={{ display: 'flex', gap: 6, fontSize: 12, opacity: 0.8, textDecoration: 'none', color: 'inherit', cursor: isDragging ? 'grabbing' : 'pointer' }}
+              >
                 <span style={{ fontWeight: 600 }}>{item.name}</span>
                 <span>${formatPrice(item.price || 0)}</span>
                 <span style={{ color: (item.change || 0) >= 0 ? theme.green : theme.red }}>
                   {(item.change || 0) >= 0 ? '▲' : '▼'}{Math.abs(item.change || 0).toFixed(2)}%
                 </span>
-              </span>
+              </a>
             ))}
           </div>
         ))}
