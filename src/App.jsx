@@ -223,7 +223,7 @@ export default function App() {
     lastFrameTime.current = performance.now();
 
     // Simulation ticks per visual frame (higher = faster simulation)
-    const ticksPerFrame = perfMode ? 3 : 5;
+    const ticksPerFrame = perfMode ? 50 : 100;
 
     const animate = (currentTime) => {
       // Run multiple simulation ticks per frame for speed
@@ -367,12 +367,11 @@ export default function App() {
     if (best) {
       // Aggressive reduction at high balances to protect gains
       // With shares-based sizing, PnL scales correctly - can stay aggressive
-      const sizePercent = balance < 10 ? 0.65 :
-                         balance < 100 ? 0.50 :
-                         balance < 10000 ? 0.35 :
-                         balance < 1000000 ? 0.25 :
-                         balance < 100000000 ? 0.15 :
-                         0.10;
+      const sizePercent = balance < 100 ? 0.80 :
+                         balance < 10000 ? 0.65 :
+                         balance < 1000000 ? 0.50 :
+                         balance < 100000000 ? 0.35 :
+                         0.25;
       const size = balance * sizePercent;
 
       // Convert dollars to shares (fixes PnL scaling across price ranges)
