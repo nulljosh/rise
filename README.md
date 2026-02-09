@@ -4,8 +4,6 @@
 
 **Live Demo**: https://bread-m0zrli7pf-nulljosh-9577s-projects.vercel.app | **Local**: `npm run dev` → http://localhost:5173
 
-![Workflow Diagram](https://raw.githubusercontent.com/nulljosh/bread/main/docs/workflow.svg)
-
 ---
 
 ## Overview
