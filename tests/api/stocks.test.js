@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import handler from './stocks.js';
+import handler from '../../api/stocks.js';
 
 // Mock fetch globally
 global.fetch = vi.fn();

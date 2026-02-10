@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import handler from './cron.js';
+import handler from '../../api/cron.js';
 
 // Mock Vercel Blob
 vi.mock('@vercel/blob', () => ({

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import handler from './latest.js';
+import handler from '../../api/latest.js';
 
 // Mock Vercel Blob
 vi.mock('@vercel/blob', () => ({

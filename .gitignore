@@ -137,3 +137,4 @@ frontend/dist/
 frontend/.next/
 frontend/out/
 .vercel
+.env*.local
