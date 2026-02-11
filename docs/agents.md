@@ -4,7 +4,7 @@ Strategic suggestions for automating Bread with AI agents.
 
 ## Implemented Agents
 
-### 1. Live Price Aggregator ✅
+### 1. Live Price Aggregator 
 **Status:** Complete
 **What it does:** Real-time price updates for 61 assets (stocks, indices, commodities, crypto)
 **Tech:** Yahoo Finance API, batched requests
@@ -218,7 +218,7 @@ test('$1 → $1B in under 60 seconds', async ({ page }) => {
 **Flow:**
 1. Poll VIX every 5 minutes
 2. If VIX > 30 or daily change > 20%:
-   - Show banner: "Something happened 🚨"
+   - Show banner: "Something happened "
    - Push notification (if user opted in)
    - Suggest defensive strategies (cash, bonds)
 3. Auto-pause simulator (market too chaotic)
@@ -323,7 +323,7 @@ test('$1 → $1B in under 60 seconds', async ({ page }) => {
 
 ## Next Steps
 
-1. ✅ Complete live price aggregation
+1.  Complete live price aggregation
 2. ⏳ Build news sentiment analyzer (v1.3.0)
 3. ⏳ Add backtesting on 1Y data
 4. ⏳ Implement performance tracker with localStorage

@@ -28,7 +28,7 @@ Autonomous agent that trades on prediction markets (Polymarket, Kalshi, Metaculu
 - Manual bet approval
 - Basic dashboard with balance/P&L
 
-**Status:** ✅ Implemented (SurvivalMode.jsx)
+**Status:**  Implemented (SurvivalMode.jsx)
 
 **Implementation Notes:**
 - Added as new mode in Bread app (toggle button in header)

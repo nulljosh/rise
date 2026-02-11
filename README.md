@@ -20,10 +20,10 @@ Bread is a high-performance financial terminal that combines:
 
 | Metric | Target | Current | Status |
 |--------|--------|---------|--------|
-| Memory Footprint | <10MB | ~177KB gzip | ✅ |
-| API Latency | <100ms | ~200ms | 🟡 |
-| Bundle Size | <500KB | 233KB | ✅ |
-| React Warnings | 0 | 0 | ✅ |
+| Memory Footprint | <10MB | ~177KB gzip |  |
+| API Latency | <100ms | ~200ms |  |
+| Bundle Size | <500KB | 233KB |  |
+| React Warnings | 0 | 0 |  |
 
 ---
 
