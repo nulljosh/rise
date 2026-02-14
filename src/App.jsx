@@ -111,7 +111,7 @@ export default function App() {
   const [perfMode, setPerfMode] = useState(true);
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [targetTrillion, setTargetTrillion] = useState(false);
+  const targetTrillion = balance >= 1e9; // Auto-enable at $1B
   const trends = useRef(Object.fromEntries(SYMS.map(s => [s, 0])));
   const [tradeStats, setTradeStats] = useState({ wins: {}, losses: {} });
   const cooldownSyms = useRef({});  // sym -> tick when cooldown expires
@@ -761,18 +761,11 @@ export default function App() {
         <div style={{ marginBottom: 24 }}>
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: t.green }}>TRADING SIMULATOR</div>
           <Card dark={dark} t={t} style={{ padding: 16 }}>
-            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: 12, color: t.textSecondary }}>$1 → ${targetTrillion ? '1T' : '1B'} • 61 assets • Fib levels</div>
-              <label style={{ fontSize: 11, color: t.textSecondary, display: 'flex', alignItems: 'center', gap: 6, cursor: running ? 'not-allowed' : 'pointer', opacity: running ? 0.5 : 1 }}>
-                <input
-                  type="checkbox"
-                  checked={targetTrillion}
-                  onChange={(e) => setTargetTrillion(e.target.checked)}
-                  disabled={running}
-                  style={{ cursor: running ? 'not-allowed' : 'pointer' }}
-                />
-                $1T target
-              </label>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, color: t.textSecondary }}>
+                $1 → ${targetTrillion ? '1T' : '1B'} • 61 assets • Fib levels
+                {targetTrillion && <span style={{ marginLeft: 8, color: t.green, fontWeight: 600 }}>🚀 HYPER MODE</span>}
+              </div>
             </div>
 
             {busted && (
