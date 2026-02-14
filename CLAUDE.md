@@ -434,4 +434,172 @@ Opinionated constraints for building better interfaces with agents.
 
 ---
 
-**Last Updated**: 2026-01-10
+## Philosophy & Soul
+
+### The 10MB Dashboard
+
+> "Build fast, not bloated."
+
+Most financial terminals are slow, bloated, and expensive:
+- **Bloomberg Terminal**: $24,000/year, 100MB+ memory, ugly UI
+- **MetaTrader**: 200MB+ install, cluttered interface, Windows-only
+- **TradingView**: 50MB+ page load, slow charts, premium paywalls
+
+Bread is different:
+- **Memory**: <10MB runtime footprint
+- **Bundle**: 233KB (target <200KB)
+- **Speed**: Sub-60s to run $1 → $1B simulation
+- **Cost**: Free, open source
+
+**The constraint is the point.** Every feature must justify its bytes.
+
+### Core Philosophy
+
+**1. Speed is Sacred**
+Latency kills alpha. Every millisecond between signal and execution is money left on the table.
+
+- 50ms tick rate (Bloomberg: 250ms)
+- Delta-Threshold updates (only render on >0.5% moves)
+- Vectorized Monte Carlo (SIMD-optimized)
+- Binary payloads (14 bytes vs 100+ bytes JSON)
+
+**2. Nothing Ever Happens**
+Markets are boring 95% of the time. UI should reflect this.
+
+- Silent by default
+- Only alert on >3% moves
+- Big red banner when VIX spikes
+- Contrarian mindset (fade the hype)
+
+**3. Education Over Gambling**
+Bread is a simulator, not a casino.
+
+- Show win rate, max drawdown, stopped out count
+- No gamified losses or "try again" dopamine
+- Full transparency on trade history
+- Encourage patience over overtrading
+
+**4. Transparency**
+Code is open source. Algorithms are documented. No black boxes.
+
+---
+
+## Vercel Blob Caching
+
+### Overview
+Bread uses Vercel Blob Storage to cache market data for fast retrieval and reduced API load.
+
+**Architecture:**
+- **Cron job** (`/api/cron`) — Runs daily at 8 AM UTC
+- **Latest endpoint** (`/api/latest`) — Serves cached data with <100ms latency
+- **Client** — Fetches from latest endpoint on app load
+
+### Setup
+
+**Environment Variables:**
+```env
+BLOB_READ_WRITE_TOKEN=your_vercel_blob_token
+CRON_SECRET=your_random_secret
+```
+
+**Getting tokens:**
+1. **BLOB_READ_WRITE_TOKEN:** Vercel dashboard → Settings → Tokens → "Blob Read/Write"
+2. **CRON_SECRET:** Generate with `openssl rand -hex 32`
+
+### Data Flow
+
+```
+Vercel Cron (8 AM UTC)
+    ↓
+/api/cron handler
+    ↓
+Fetch in parallel:
+  - Polymarket (markets)
+  - Yahoo Finance (stocks)
+  - Yahoo Finance (commodities)
+  - CoinGecko (crypto)
+    ↓
+Upload to Vercel Blob
+    ↓
+Client calls /api/latest
+    ↓
+Returns cached data
+```
+
+### Data Sources
+
+**Markets (Polymarket)**
+- 50 most-traded prediction markets
+- Updated: Daily via cron
+
+**Stocks (Yahoo Finance)**
+- 24 major stocks + commodities
+- Fields: price, change, changePercent, volume
+- Updated: Daily via cron, live updates every 5 min in app
+
+**Commodities (Yahoo Finance)**
+- 11 commodities & indices (Gold, Oil, S&P 500, etc.)
+- Updated: Daily via cron
+
+**Crypto (CoinGecko)**
+- Bitcoin & Ethereum spot prices
+- Free API, no auth required
+- Updated: Daily via cron, live updates every 5 min
+
+### Monitoring
+
+**Check cache age:**
+```javascript
+fetch('/api/latest')
+  .then(r => r.json())
+  .then(data => {
+    const age = new Date() - new Date(data.data.updatedAt);
+    console.log(`Cache age: ${age / 1000 / 60} minutes`);
+  });
+```
+
+**Performance targets:**
+- Fetch: <3000ms
+- Upload: <500ms
+- Total: <5000ms
+
+### Error Handling
+
+- Automatic retries (up to 2 per source)
+- Graceful degradation (if one source fails, others still work)
+- Client fallback (use old cache if >24h old, show warning)
+
+### Costs
+
+**Vercel Blob Storage:**
+- First 10 GB: Free
+- Bread usage: ~50KB cache file, 1 write/day
+- **Cost:** Essentially free (within free tier)
+
+---
+
+## Known Issues
+
+### Ticker Data Accuracy Issue
+
+**Problem:** Stock prices showing as outdated
+
+**Root Cause:** Yahoo Finance API returning 401 Unauthorized (as of Feb 13, 2026)
+
+**Current Status:**
+- API failing with 401, falling back to hardcoded data from Feb 6, 2026
+- Fallback data is 7+ days old
+
+**Solutions:**
+1. **Fix Yahoo Finance API** - Add proper cookies/headers
+2. **Alternative API** (Recommended) - Financial Modeling Prep (250 free req/day)
+3. **Update Fallback** (Band-aid) - Manually update prices in `src/hooks/useStocks.js`
+
+**Quick Fix Created:**
+- Added `api/stocks-fmp.js` as alternative endpoint
+- Requires FMP_API_KEY env var on Vercel
+- To use: Change `useStocks` hook to call `/api/stocks-fmp`
+
+---
+
+**Last Updated**: 2026-02-14
