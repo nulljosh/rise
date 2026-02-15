@@ -27,6 +27,28 @@ Bread is a high-performance financial terminal that combines:
 
 ---
 
+## Monetization
+
+Rise offers a **Free** tier and a **Pro** tier at **$49/month** via Stripe:
+
+### Free Tier
+- Prediction markets (Polymarket)
+- Live stock data (US50 + commodities)
+- Monte Carlo simulations
+- Trading simulator
+
+### Pro Tier ($49/mo)
+- Everything in Free, plus:
+- Real-time cTrader integration (auto-trading)
+- TradingView webhook access
+- Priority API access
+- Advanced Monte Carlo scenarios
+- Live trade execution capabilities
+
+**Upgrade**: Click "UPGRADE" button in the header or visit /pricing
+
+---
+
 ## Features
 
 ### 1. Trading Simulator (Main UI)
@@ -110,21 +132,37 @@ npm run preview
 
 ### Environment Setup
 
-The news widget requires a NewsAPI key:
+Create a `.env` file from the example:
 
-1. **Get API Key**: Sign up at https://newsapi.org (free tier: 100 requests/day)
-2. **Create `.env` file** in project root:
-   ```bash
-   cp .env.example .env
+```bash
+cp .env.example .env
+```
+
+#### Required API Keys
+
+**NewsAPI** (for news widget):
+1. Get free key at https://newsapi.org (100 req/day)
+2. Add to `.env`: `NEWS_API_KEY=your_key`
+
+**Stripe** (for Pro subscriptions):
+1. Get API keys at https://dashboard.stripe.com/apikeys
+2. Create product/price in Stripe Dashboard
+3. Add to `.env`:
    ```
-3. **Add your key**:
+   STRIPE_SECRET_KEY=sk_test_...
+   STRIPE_WEBHOOK_SECRET=whsec_...
+   VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
+   VITE_STRIPE_PRICE_ID_PRO=price_...
    ```
-   NEWS_API_KEY=your_actual_key_here
-   ```
-4. **For Vercel deployment**, add env var:
-   ```bash
-   vercel env add NEWS_API_KEY
-   ```
+
+**For Vercel deployment**, add env vars via dashboard or CLI:
+```bash
+vercel env add NEWS_API_KEY
+vercel env add STRIPE_SECRET_KEY
+vercel env add STRIPE_WEBHOOK_SECRET
+vercel env add VITE_STRIPE_PUBLISHABLE_KEY
+vercel env add VITE_STRIPE_PRICE_ID_PRO
+```
 
 ### Run Tests
 
@@ -492,5 +530,5 @@ Built by [@nulljosh](https://github.com/nulljosh) with Claude Sonnet 4.5
 
 ---
 
-**Last Updated**: 2026-01-24
-**Version**: v1.2.1 (6x Speed + Automated Testing)
+**Last Updated**: 2026-02-15
+**Version**: v1.5.0 (Stripe Monetization + Blob Cache)
