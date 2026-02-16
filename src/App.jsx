@@ -412,6 +412,18 @@ export default function App() {
                       balance < 100000000 ? 0.35 :
                       0.25;
       }
+
+      // More careful near milestones (reduce position size, tighter stop loss)
+      let distanceToMilestone = 1;
+      let nearMilestone = false;
+      if (nextMilestone && nextMilestone >= 1e9) {
+        distanceToMilestone = (nextMilestone - balance) / nextMilestone;
+        nearMilestone = distanceToMilestone < 0.05; // Within 5% of milestone
+        if (nearMilestone) {
+          sizePercent *= 0.7; // 30% reduction
+        }
+      }
+
       const size = balance * sizePercent;
 
       // Convert dollars to shares (fixes PnL scaling across price ranges)
@@ -438,11 +450,14 @@ export default function App() {
       }
 
       try {
+        // Tighter stop loss near milestones
+        const stopLossPercent = nearMilestone ? 0.985 : 0.983; // 1.5% vs 1.7%
+
         setPosition({
           sym: best.sym,
           entry: best.price,
           size: shares, // NOW IN SHARES, not dollars
-          stop: best.price * 0.983, // 1.7% stop loss
+          stop: best.price * stopLossPercent,
           target: best.price * takeProfitMultiplier,
         });
         setLastTraded(best.sym);
@@ -880,28 +895,42 @@ export default function App() {
               </div>
             )}
 
-            <div style={{ background: t.surface, borderRadius: 14, padding: 14, marginBottom: 14, minHeight: 160 }}>
-              <svg width="100%" height="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
-                <line x1="0" y1={toY(0)} x2={W} y2={toY(0)} stroke={t.border} strokeDasharray="4" />
-                {SYMS.map(sym => prices[sym].length > 1 && (
-                  <path
-                    key={sym}
-                    d={makePath(sym)}
-                    fill="none"
-                    stroke={ASSETS[sym].color}
-                    strokeWidth={position?.sym === sym ? 2.5 : 1}
-                    opacity={position ? (position.sym === sym ? 1 : 0.15) : 0.5}
-                  />
-                ))}
-              </svg>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
-                {SYMS.map(sym => (
-                  <div key={sym} style={{ display: 'flex', alignItems: 'center', gap: 4, opacity: position ? (position.sym === sym ? 1 : 0.3) : 0.6 }}>
-                    <div style={{ width: 6, height: 6, borderRadius: 1, background: ASSETS[sym].color }} />
-                    <span style={{ fontSize: 9, color: t.textTertiary }}>{sym}</span>
+            <div style={{ background: t.surface, borderRadius: 14, padding: 14, marginBottom: 14, minHeight: 160, position: 'relative' }}>
+              <button
+                onClick={() => setShowChart(!showChart)}
+                style={{ position: 'absolute', top: 10, right: 10, background: t.border, border: 'none', borderRadius: 6, padding: '4px 8px', fontSize: 10, color: t.textSecondary, cursor: 'pointer', zIndex: 10 }}
+              >
+                {showChart ? 'Hide Chart' : 'Show Chart'}
+              </button>
+              {showChart ? (
+                <>
+                  <svg width="100%" height="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+                    <line x1="0" y1={toY(0)} x2={W} y2={toY(0)} stroke={t.border} strokeDasharray="4" />
+                    {SYMS.map(sym => prices[sym].length > 1 && (
+                      <path
+                        key={sym}
+                        d={makePath(sym)}
+                        fill="none"
+                        stroke={ASSETS[sym].color}
+                        strokeWidth={position?.sym === sym ? 2.5 : 1}
+                        opacity={position ? (position.sym === sym ? 1 : 0.15) : 0.5}
+                      />
+                    ))}
+                  </svg>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+                    {SYMS.map(sym => (
+                      <div key={sym} style={{ display: 'flex', alignItems: 'center', gap: 4, opacity: position ? (position.sym === sym ? 1 : 0.3) : 0.6 }}>
+                        <div style={{ width: 6, height: 6, borderRadius: 1, background: ASSETS[sym].color }} />
+                        <span style={{ fontSize: 9, color: t.textTertiary }}>{sym}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 140 }}>
+                  <div style={{ fontSize: 48, fontWeight: 700, color: t.text }}>{formatNumber(equity)}</div>
+                </div>
+              )}
             </div>
 
             {position && (
@@ -929,7 +958,18 @@ export default function App() {
               </button>
               <button onClick={reset} style={{ padding: 16, borderRadius: 12, border: `1px solid ${t.border}`, background: 'transparent', color: t.textSecondary, fontFamily: font, fontSize: 16, cursor: 'pointer' }}>↺</button>
             </div>
-            <div style={{ textAlign: 'center', fontSize: 10, color: t.textTertiary, marginBottom: 14 }}>
+
+            {pausedAtMilestone && (
+              <div style={{ padding: 16, background: `${t.blue}15`, border: `1px solid ${t.blue}`, borderRadius: 12, marginTop: 14, textAlign: 'center' }}>
+                <div style={{ fontWeight: 600, marginBottom: 8, color: t.text }}>Milestone Reached: {formatNumber(currentMilestone)}</div>
+                <div style={{ fontSize: 14, color: t.textSecondary, marginBottom: 12 }}>Next target: {formatNumber(nextMilestone || currentMilestone * 2)}</div>
+                <button onClick={handleContinue} style={{ background: t.blue, color: '#fff', padding: '12px 24px', borderRadius: 12, border: 'none', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: font }}>
+                  Continue to {formatNumber(nextMilestone || currentMilestone * 2)}
+                </button>
+              </div>
+            )}
+
+            <div style={{ textAlign: 'center', fontSize: 10, color: t.textTertiary, marginBottom: 14, marginTop: 14 }}>
               [Space] Start/Stop/Restart • [R] Reset
             </div>
 
