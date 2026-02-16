@@ -139,6 +139,7 @@ export default function App() {
   const [pausedAtMilestone, setPausedAtMilestone] = useState(false);
   const [currentMilestone, setCurrentMilestone] = useState(1e9); // Start at $1B
   const [nextMilestone, setNextMilestone] = useState(null);
+  const [showChart, setShowChart] = useState(false); // Default hide chart
 
   // Animation refs for smooth 60fps rendering
   const animationRef = useRef(null);
