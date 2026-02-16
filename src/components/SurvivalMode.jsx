@@ -127,7 +127,7 @@ export default function SurvivalMode() {
       {/* Header */}
       <div style={{ borderBottom: '1px solid #0f0', paddingBottom: '10px', marginBottom: '20px' }}>
         <h1 style={{ margin: 0, fontSize: '20px' }}>
-          BREAD / SURVIVAL MODE {isRunning ? '🟢 ALIVE' : '⚪️ IDLE'}
+          RISE / SURVIVAL MODE {isRunning ? '🟢 ALIVE' : '⚪️ IDLE'}
         </h1>
         <div style={{ display: 'flex', gap: '20px', marginTop: '10px', fontSize: '14px' }}>
           <span>Uptime <strong>{uptimeStr}</strong></span>
