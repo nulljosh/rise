@@ -1,8 +1,16 @@
-# Bread
+# Rise
 
 > Low-latency prediction markets + trading simulator + quantitative analysis. Built for speed, optimized for efficiency.
 
-**Live Demo**: https://rise-production.vercel.app | **Local**: `npm run dev` → http://localhost:5173
+**Live Demo**: https://rise-production.vercel.app | **GitHub Pages**: https://nulljosh.github.io/rise/ | **Local**: `npm run dev` → http://localhost:5173
+
+## Current Status (2026-02-15)
+
+- ✅ **Deployed**: Production live on Vercel
+- ✅ **Free Tier**: Markets, simulator, charts working
+- ✅ **Stripe Integration**: Coded and ready ($49/mo Pro tier)
+- ⏳ **Needs Setup**: Stripe API keys (15 min, optional)
+- 💰 **Revenue Potential**: $2,450/mo (50 users @ $49/mo)
 
 ![Workflow Diagram](docs/workflow.svg)
 
