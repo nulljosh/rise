@@ -69,17 +69,33 @@ Free tier includes all features. Pro tier ($49/mo) adds:
 
 ## Roadmap
 
-**P0**: Improve simulator win rate (70% → 85%), add run history tracking
+**P0**:
+- [ ] Improve simulator win rate (70% → 85%)
+- [ ] Add run history tracking
 
-**P1**: Sync with live prices, historical backtesting, Kalshi integration
+**P1**:
+- [x] Sync with live prices
+- [ ] Historical backtesting
+- [ ] Kalshi integration
 
-**P2**: Black-Scholes options, custom ticker input, price alerts
+**P2**:
+- [ ] Black-Scholes options
+- [ ] Custom ticker input
+- [ ] Price alerts
 
-**P3**: Delta-Threshold algorithm, binary payloads, WebSocket feeds
+**P3**:
+- [ ] Delta-Threshold algorithm
+- [ ] Binary payloads
+- [ ] WebSocket feeds
 
-**P4**: TradingView webhooks, Interactive Brokers API, paper trading
+**P4**:
+- [ ] TradingView webhooks
+- [ ] Interactive Brokers API
+- [ ] Paper trading
 
-**P5**: C++ core with WASM bridge, white paper publication
+**P5**:
+- [ ] C++ core with WASM bridge
+- [ ] White paper publication
 
 ## Links
 
