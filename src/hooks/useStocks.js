@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 // MAG7 + Popular stocks + CFDs (32 total)
-const DEFAULT_SYMBOLS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA', 'NVDA', 'CRM', 'PLTR', 'HOOD', 'COST', 'JPM', 'WMT', 'TGT', 'PG', 'HIMS', 'COIN', 'SQ', 'SHOP', 'RKLB', 'SOFI', 'T', 'IBM', 'DIS', 'IWM', 'GC=F', 'SI=F', 'CL=F'];
+// Note: Block Inc rebranded SQ → XYZ in Jan 2025
+const DEFAULT_SYMBOLS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA', 'NVDA', 'CRM', 'PLTR', 'HOOD', 'COST', 'JPM', 'WMT', 'TGT', 'PG', 'HIMS', 'COIN', 'XYZ', 'SHOP', 'RKLB', 'SOFI', 'T', 'IBM', 'DIS', 'IWM', 'GC=F', 'SI=F', 'CL=F'];
 
 // Retry helper with exponential backoff
 const fetchWithRetry = async (url, maxRetries = 3, baseDelay = 1000) => {
@@ -41,36 +42,37 @@ const fetchWithRetry = async (url, maxRetries = 3, baseDelay = 1000) => {
   throw lastError;
 };
 
-// Fallback static data for when API fails (last known prices - Feb 6, 2026)
+// Fallback static data for when API fails (last known prices - Feb 19, 2026)
+// Note: Block Inc rebranded SQ → XYZ in Jan 2025
 const FALLBACK_DATA = {
-  AAPL: { symbol: 'AAPL', price: 279, changePercent: 0.42 },
-  MSFT: { symbol: 'MSFT', price: 394, changePercent: -0.18 },
-  GOOGL: { symbol: 'GOOGL', price: 328, changePercent: 0.33 },
-  AMZN: { symbol: 'AMZN', price: 205, changePercent: -7.96 },
-  NVDA: { symbol: 'NVDA', price: 177, changePercent: 1.24 },
-  META: { symbol: 'META', price: 656, changePercent: -2.19 },
-  TSLA: { symbol: 'TSLA', price: 397, changePercent: 2.15 },
-  PLTR: { symbol: 'PLTR', price: 136, changePercent: 1.82 },
-  HOOD: { symbol: 'HOOD', price: 78, changePercent: -7.41 },
-  COST: { symbol: 'COST', price: 980, changePercent: 0.31 },
-  JPM: { symbol: 'JPM', price: 268, changePercent: 0.12 },
-  WMT: { symbol: 'WMT', price: 128, changePercent: -0.08 },
-  TGT: { symbol: 'TGT', price: 137, changePercent: 0.65 },
-  PG: { symbol: 'PG', price: 172, changePercent: 0.22 },
-  HIMS: { symbol: 'HIMS', price: 27, changePercent: 3.45 },
-  COIN: { symbol: 'COIN', price: 146, changePercent: -12.58 },
-  SQ: { symbol: 'SQ', price: 83, changePercent: 0.57 },
-  SHOP: { symbol: 'SHOP', price: 131, changePercent: 0.05 },
-  RKLB: { symbol: 'RKLB', price: 71, changePercent: 4.22 },
-  SOFI: { symbol: 'SOFI', price: 19, changePercent: -6.22 },
-  T: { symbol: 'T', price: 27, changePercent: -0.33 },
-  IBM: { symbol: 'IBM', price: 290, changePercent: 0.18 },
-  DIS: { symbol: 'DIS', price: 107, changePercent: -0.42 },
-  IWM: { symbol: 'IWM', price: 256, changePercent: 0.55 },
-  CRM: { symbol: 'CRM', price: 325, changePercent: -0.45 },
-  'GC=F': { symbol: 'GC=F', price: 2870, changePercent: 0.32 },
-  'SI=F': { symbol: 'SI=F', price: 32, changePercent: 0.18 },
-  'CL=F': { symbol: 'CL=F', price: 73, changePercent: -0.55 },
+  AAPL: { symbol: 'AAPL', price: 260.58, changePercent: -1.43 },
+  MSFT: { symbol: 'MSFT', price: 398.46, changePercent: -0.29 },
+  GOOGL: { symbol: 'GOOGL', price: 302.85, changePercent: -0.16 },
+  AMZN: { symbol: 'AMZN', price: 204.86, changePercent: 0.03 },
+  NVDA: { symbol: 'NVDA', price: 187.90, changePercent: -0.04 },
+  META: { symbol: 'META', price: 644.78, changePercent: 0.24 },
+  TSLA: { symbol: 'TSLA', price: 411.71, changePercent: 0.12 },
+  PLTR: { symbol: 'PLTR', price: 134.89, changePercent: -0.36 },
+  HOOD: { symbol: 'HOOD', price: 75.65, changePercent: 0.59 },
+  COST: { symbol: 'COST', price: 987.82, changePercent: -0.83 },
+  JPM: { symbol: 'JPM', price: 308.05, changePercent: -0.24 },
+  WMT: { symbol: 'WMT', price: 124.87, changePercent: -1.38 },
+  TGT: { symbol: 'TGT', price: 115.66, changePercent: 0.00 },
+  PG: { symbol: 'PG', price: 158.56, changePercent: 1.08 },
+  HIMS: { symbol: 'HIMS', price: 15.82, changePercent: -0.13 },
+  COIN: { symbol: 'COIN', price: 165.94, changePercent: 1.15 },
+  XYZ: { symbol: 'XYZ', price: 52.89, changePercent: 0.00 },
+  SHOP: { symbol: 'SHOP', price: 123.80, changePercent: 1.78 },
+  RKLB: { symbol: 'RKLB', price: 76.58, changePercent: 2.90 },
+  SOFI: { symbol: 'SOFI', price: 19.30, changePercent: -1.23 },
+  T: { symbol: 'T', price: 27.88, changePercent: 0.00 },
+  IBM: { symbol: 'IBM', price: 256.28, changePercent: -1.73 },
+  DIS: { symbol: 'DIS', price: 106.00, changePercent: -1.03 },
+  IWM: { symbol: 'IWM', price: 264.60, changePercent: 0.23 },
+  CRM: { symbol: 'CRM', price: 185.29, changePercent: -1.33 },
+  'GC=F': { symbol: 'GC=F', price: 5019.90, changePercent: 0.45 },
+  'SI=F': { symbol: 'SI=F', price: 78.32, changePercent: 0.88 },
+  'CL=F': { symbol: 'CL=F', price: 66.83, changePercent: 0.65 },
 };
 
 // Parse stock data from either Vercel serverless or Yahoo raw response format
