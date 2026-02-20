@@ -69,33 +69,34 @@ Free tier includes all features. Pro tier ($49/mo) adds:
 
 ## Roadmap
 
-**P0**:
-- [ ] Improve simulator win rate (70% → 85%)
-- [ ] Add run history tracking
+**P0 — Critical (must ship)**
+- [ ] Improve win rate 70% → 85% (entry filter tuning)
+- [ ] Run history persistence (localStorage or Blob)
+- [ ] Polymarket + Situation Monitor integration
 
-**P1**:
-- [x] Sync with live prices
-- [ ] Historical backtesting
-- [ ] Kalshi integration
+**P1 — High priority**
+- [ ] Historical backtesting against real OHLCV data
+- [ ] Kalshi prediction market integration
+- [ ] Custom ticker input by user
 
-**P2**:
-- [ ] Black-Scholes options
-- [ ] Custom ticker input
-- [ ] Price alerts
+**P2 — Feature complete**
+- [ ] Black-Scholes options pricing UI
+- [ ] Price alerts / push notifications
+- [ ] Situation Monitor panel (real-time news → PM market correlation)
 
-**P3**:
-- [ ] Delta-Threshold algorithm
-- [ ] Binary payloads
-- [ ] WebSocket feeds
+**P3 — Performance**
+- [ ] Delta-Threshold bandwidth optimization
+- [ ] Binary payload compression
+- [ ] WebSocket real-time feeds (replace polling)
 
-**P4**:
-- [ ] TradingView webhooks
-- [ ] Interactive Brokers API
-- [ ] Paper trading
+**P4 — Pro tier**
+- [ ] TradingView webhook auto-trading
+- [ ] Interactive Brokers live API connection
+- [ ] Paper trading mode (live prices, sim risk)
 
-**P5**:
+**P5 — Long-term**
 - [ ] C++ core with WASM bridge
-- [ ] White paper publication
+- [ ] Academic white paper publication
 
 ## Links
 
@@ -110,7 +111,7 @@ Built with Claude Sonnet 4.5 | MIT License | Not financial advice
 ## Project Map
 
 ```svg
-<svg viewBox="0 0 680 420" width="680" height="420" xmlns="http://www.w3.org/2000/svg" style="font-family:monospace;background:#f8fafc;border-radius:12px">
+<svg viewBox="0 0 680 420" width="100%" style="max-width:680px;font-family:monospace;background:#f8fafc;border-radius:12px" xmlns="http://www.w3.org/2000/svg">
   <rect width="680" height="420" fill="#f8fafc" rx="12"/>
   <text x="340" y="24" font-size="13" font-weight="bold" fill="#0f172a" text-anchor="middle">rise — Financial Terminal</text>
 
