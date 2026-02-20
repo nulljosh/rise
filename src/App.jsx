@@ -767,8 +767,8 @@ const reset = useCallback(() => {
 
   // Hero number text contrast: shadow deepens in dark mode, lifts in light mode
   const heroTextShadow = dark
-    ? `0 2px ${Math.round(4 + bgProgress * 24)}px rgba(0,0,0,${(0.3 + bgProgress * 0.55).toFixed(2)})`
-    : bgProgress > 0.15 ? `0 1px 8px rgba(255,255,255,0.9)` : 'none';
+    ? `0 1px ${Math.round(2 + bgProgress * 8)}px rgba(0,0,0,${(0.2 + bgProgress * 0.25).toFixed(2)})`
+    : bgProgress > 0.15 ? `0 1px 4px rgba(255,255,255,0.6)` : 'none';
 
   // P&L positive color: stays readable in light mode as bg greens out
   const pnlGreen = dark ? t.green : bgProgress > 0.2 ? '#0c6b27' : t.green;
@@ -1193,7 +1193,7 @@ const reset = useCallback(() => {
               padding: 14,
               maxWidth: 320,
               zIndex: 1000,
-              boxShadow: dark ? '0 8px 32px rgba(0,0,0,0.5)' : '0 8px 32px rgba(0,0,0,0.15)',
+              boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.25)' : '0 1px 4px rgba(0,0,0,0.08)',
               pointerEvents: isMobile ? 'auto' : 'none',
             }}>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, lineHeight: 1.4 }}>{market.question}</div>

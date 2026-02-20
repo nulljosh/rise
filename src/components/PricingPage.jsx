@@ -131,7 +131,7 @@ export default function PricingPage({ dark, t, onClose }) {
           <Card t={t} dark={dark} style={{
             padding: 32,
             border: `2px solid ${t.blue}`,
-            boxShadow: `0 0 40px ${t.blue}40`,
+            boxShadow: `0 0 12px ${t.blue}20`,
           }}>
             <div style={{ marginBottom: 24 }}>
               <h3 style={{

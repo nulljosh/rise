@@ -46,7 +46,7 @@ export const BlinkingDot = ({ color, delay = 0, speed = 2 }) => (
     borderRadius: '50%',
     backgroundColor: color,
     animation: `blink ${speed}s ease-in-out ${delay}s infinite`,
-    boxShadow: `0 0 4px ${color}`,
+    boxShadow: `0 0 2px ${color}`,
   }} />
 );
 
@@ -64,7 +64,7 @@ export const Card = ({ children, style, onClick, dark, t }) => (
     WebkitBackdropFilter: 'blur(40px) saturate(180%)',
     borderRadius: 20,
     border: `0.5px solid ${t.border}`,
-    boxShadow: dark ? '0 8px 32px rgba(0,0,0,0.4)' : '0 8px 32px rgba(0,0,0,0.08)',
+    boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.2)' : '0 1px 4px rgba(0,0,0,0.05)',
     cursor: onClick ? 'pointer' : 'default',
     overflow: 'hidden',
     transition: 'all 0.2s ease',
