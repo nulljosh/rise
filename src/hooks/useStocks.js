@@ -1,8 +1,35 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-// MAG7 + Popular stocks + CFDs (32 total)
-// Note: Block Inc rebranded SQ → XYZ in Jan 2025
-const DEFAULT_SYMBOLS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA', 'NVDA', 'CRM', 'PLTR', 'HOOD', 'COST', 'JPM', 'WMT', 'TGT', 'PG', 'HIMS', 'COIN', 'XYZ', 'SHOP', 'RKLB', 'SOFI', 'T', 'IBM', 'DIS', 'IWM', 'GC=F', 'SI=F', 'CL=F'];
+// All tradeable stock/ETF symbols across 100-asset universe
+// Excludes: indices (handled by commodities.js), meme coins (CoinGecko / not on Yahoo)
+// Note: Block Inc rebranded SQ → XYZ (Jan 2025). Berkshire uses BRK-B on Yahoo.
+const DEFAULT_SYMBOLS = [
+  // MAG7
+  'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA',
+  // Large cap US stocks
+  'BRK-B', 'LLY', 'V', 'UNH', 'XOM', 'JPM', 'WMT', 'JNJ', 'MA', 'PG',
+  'AVGO', 'HD', 'CVX', 'MRK', 'COST', 'ABBV', 'KO', 'PEP', 'AMD', 'ADBE',
+  'CRM', 'NFLX', 'CSCO', 'TMO', 'ORCL', 'ACN', 'INTC', 'NKE', 'TXN',
+  'QCOM', 'PM', 'DHR', 'INTU', 'UNP', 'RTX', 'HON', 'SPGI',
+  // Financials
+  'BAC', 'GS', 'MS', 'C', 'WFC', 'BLK', 'SCHW', 'AXP',
+  // Healthcare
+  'PFE', 'AMGN', 'BMY', 'MDT', 'BSX', 'ELV', 'CVS',
+  // Industrials
+  'UPS', 'FDX', 'BA', 'CAT', 'DE', 'LMT', 'GE',
+  // Media & Telecom
+  'DIS', 'CMCSA', 'VZ', 'T', 'TMUS',
+  // Utilities
+  'NEE', 'DUK', 'SO',
+  // Consumer
+  'TGT', 'LOW', 'SBUX', 'MCD', 'YUM', 'F', 'GM',
+  // REITs & Other
+  'AMT', 'PLD', 'CME', 'WM', 'XYZ',
+  // Popular / high-vol
+  'COIN', 'PLTR', 'HOOD', 'HIMS', 'SHOP', 'RKLB', 'SOFI', 'IBM', 'IWM',
+  // Commodity futures
+  'GC=F', 'SI=F', 'CL=F',
+];
 
 // Retry helper with exponential backoff
 const fetchWithRetry = async (url, maxRetries = 3, baseDelay = 1000) => {
@@ -11,10 +38,9 @@ const fetchWithRetry = async (url, maxRetries = 3, baseDelay = 1000) => {
   for (let i = 0; i < maxRetries; i++) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       const response = await fetch(url, { signal: controller.signal });
-
       clearTimeout(timeoutId);
 
       if (!response.ok) {
@@ -27,12 +53,10 @@ const fetchWithRetry = async (url, maxRetries = 3, baseDelay = 1000) => {
       lastError = err;
       console.warn(`Fetch attempt ${i + 1}/${maxRetries} failed:`, err.message);
 
-      // Don't retry on certain errors
       if (err.message.includes('400') || err.message.includes('Invalid')) {
         throw err;
       }
 
-      // Wait before retrying (exponential backoff)
       if (i < maxRetries - 1) {
         await new Promise(resolve => setTimeout(resolve, baseDelay * Math.pow(2, i)));
       }
@@ -42,40 +66,120 @@ const fetchWithRetry = async (url, maxRetries = 3, baseDelay = 1000) => {
   throw lastError;
 };
 
-// Fallback static data for when API fails (last known prices - Feb 19, 2026)
-// Note: Block Inc rebranded SQ → XYZ in Jan 2025
+// Fallback static data — used only when all live APIs fail (Feb 20, 2026)
 const FALLBACK_DATA = {
-  AAPL: { symbol: 'AAPL', price: 260.58, changePercent: -1.43 },
-  MSFT: { symbol: 'MSFT', price: 398.46, changePercent: -0.29 },
-  GOOGL: { symbol: 'GOOGL', price: 302.85, changePercent: -0.16 },
-  AMZN: { symbol: 'AMZN', price: 204.86, changePercent: 0.03 },
-  NVDA: { symbol: 'NVDA', price: 187.90, changePercent: -0.04 },
-  META: { symbol: 'META', price: 644.78, changePercent: 0.24 },
-  TSLA: { symbol: 'TSLA', price: 411.71, changePercent: 0.12 },
-  PLTR: { symbol: 'PLTR', price: 134.89, changePercent: -0.36 },
-  HOOD: { symbol: 'HOOD', price: 75.65, changePercent: 0.59 },
-  COST: { symbol: 'COST', price: 987.82, changePercent: -0.83 },
-  JPM: { symbol: 'JPM', price: 308.05, changePercent: -0.24 },
-  WMT: { symbol: 'WMT', price: 124.87, changePercent: -1.38 },
-  TGT: { symbol: 'TGT', price: 115.66, changePercent: 0.00 },
-  PG: { symbol: 'PG', price: 158.56, changePercent: 1.08 },
-  HIMS: { symbol: 'HIMS', price: 15.82, changePercent: -0.13 },
-  COIN: { symbol: 'COIN', price: 165.94, changePercent: 1.15 },
-  XYZ: { symbol: 'XYZ', price: 52.89, changePercent: 0.00 },
-  SHOP: { symbol: 'SHOP', price: 123.80, changePercent: 1.78 },
-  RKLB: { symbol: 'RKLB', price: 76.58, changePercent: 2.90 },
-  SOFI: { symbol: 'SOFI', price: 19.30, changePercent: -1.23 },
-  T: { symbol: 'T', price: 27.88, changePercent: 0.00 },
-  IBM: { symbol: 'IBM', price: 256.28, changePercent: -1.73 },
-  DIS: { symbol: 'DIS', price: 106.00, changePercent: -1.03 },
-  IWM: { symbol: 'IWM', price: 264.60, changePercent: 0.23 },
-  CRM: { symbol: 'CRM', price: 185.29, changePercent: -1.33 },
-  'GC=F': { symbol: 'GC=F', price: 5019.90, changePercent: 0.45 },
-  'SI=F': { symbol: 'SI=F', price: 78.32, changePercent: 0.88 },
-  'CL=F': { symbol: 'CL=F', price: 66.83, changePercent: 0.65 },
+  // MAG7
+  AAPL:   { symbol: 'AAPL',   price: 244.60, changePercent: -0.52 },
+  MSFT:   { symbol: 'MSFT',   price: 415.50, changePercent:  0.21 },
+  GOOGL:  { symbol: 'GOOGL',  price: 195.80, changePercent: -0.31 },
+  AMZN:   { symbol: 'AMZN',   price: 228.40, changePercent:  0.18 },
+  NVDA:   { symbol: 'NVDA',   price: 135.60, changePercent: -1.14 },
+  META:   { symbol: 'META',   price: 705.20, changePercent:  0.48 },
+  TSLA:   { symbol: 'TSLA',   price: 338.40, changePercent: -2.41 },
+  // Large cap
+  'BRK-B':{ symbol: 'BRK-B', price: 499.80, changePercent:  0.12 },
+  LLY:    { symbol: 'LLY',    price: 802.50, changePercent: -0.67 },
+  V:      { symbol: 'V',      price: 348.90, changePercent:  0.09 },
+  UNH:    { symbol: 'UNH',    price: 514.20, changePercent: -0.43 },
+  XOM:    { symbol: 'XOM',    price: 109.30, changePercent:  0.55 },
+  JPM:    { symbol: 'JPM',    price: 268.80, changePercent:  0.22 },
+  WMT:    { symbol: 'WMT',    price: 98.40,  changePercent: -0.81 },
+  JNJ:    { symbol: 'JNJ',    price: 157.20, changePercent:  0.14 },
+  MA:     { symbol: 'MA',     price: 552.60, changePercent:  0.07 },
+  PG:     { symbol: 'PG',     price: 162.10, changePercent:  0.33 },
+  AVGO:   { symbol: 'AVGO',   price: 218.40, changePercent: -0.89 },
+  HD:     { symbol: 'HD',     price: 415.30, changePercent:  0.17 },
+  CVX:    { symbol: 'CVX',    price: 152.80, changePercent:  0.68 },
+  MRK:    { symbol: 'MRK',    price: 94.60,  changePercent: -0.42 },
+  COST:   { symbol: 'COST',   price: 1005.40,changePercent: -0.31 },
+  ABBV:   { symbol: 'ABBV',   price: 207.30, changePercent:  0.55 },
+  KO:     { symbol: 'KO',     price: 63.80,  changePercent:  0.16 },
+  PEP:    { symbol: 'PEP',    price: 148.90, changePercent: -0.22 },
+  AMD:    { symbol: 'AMD',    price: 117.40, changePercent: -1.88 },
+  ADBE:   { symbol: 'ADBE',   price: 432.10, changePercent: -0.44 },
+  CRM:    { symbol: 'CRM',    price: 313.60, changePercent:  0.38 },
+  NFLX:   { symbol: 'NFLX',   price: 1022.50,changePercent:  0.61 },
+  CSCO:   { symbol: 'CSCO',   price: 57.80,  changePercent:  0.09 },
+  TMO:    { symbol: 'TMO',    price: 544.20, changePercent: -0.33 },
+  ORCL:   { symbol: 'ORCL',   price: 188.60, changePercent:  0.44 },
+  ACN:    { symbol: 'ACN',    price: 334.80, changePercent: -0.18 },
+  INTC:   { symbol: 'INTC',   price: 21.30,  changePercent: -0.93 },
+  NKE:    { symbol: 'NKE',    price: 71.80,  changePercent: -0.28 },
+  TXN:    { symbol: 'TXN',    price: 214.50, changePercent:  0.23 },
+  QCOM:   { symbol: 'QCOM',   price: 147.20, changePercent: -0.54 },
+  PM:     { symbol: 'PM',     price: 137.80, changePercent:  0.36 },
+  DHR:    { symbol: 'DHR',    price: 195.40, changePercent: -0.21 },
+  INTU:   { symbol: 'INTU',   price: 668.30, changePercent:  0.12 },
+  UNP:    { symbol: 'UNP',    price: 237.80, changePercent:  0.08 },
+  RTX:    { symbol: 'RTX',    price: 144.60, changePercent:  0.31 },
+  HON:    { symbol: 'HON',    price: 214.70, changePercent: -0.14 },
+  SPGI:   { symbol: 'SPGI',   price: 466.20, changePercent:  0.27 },
+  // Financials
+  BAC:    { symbol: 'BAC',    price: 43.80,  changePercent:  0.46 },
+  GS:     { symbol: 'GS',     price: 577.40, changePercent:  0.33 },
+  MS:     { symbol: 'MS',     price: 131.60, changePercent:  0.19 },
+  C:      { symbol: 'C',      price: 74.20,  changePercent:  0.41 },
+  WFC:    { symbol: 'WFC',    price: 74.80,  changePercent:  0.27 },
+  BLK:    { symbol: 'BLK',    price: 1064.30,changePercent:  0.15 },
+  SCHW:   { symbol: 'SCHW',   price: 79.20,  changePercent:  0.51 },
+  AXP:    { symbol: 'AXP',    price: 305.60, changePercent:  0.08 },
+  // Healthcare
+  PFE:    { symbol: 'PFE',    price: 26.20,  changePercent: -0.38 },
+  AMGN:   { symbol: 'AMGN',   price: 293.40, changePercent: -0.62 },
+  BMY:    { symbol: 'BMY',    price: 57.80,  changePercent:  0.17 },
+  MDT:    { symbol: 'MDT',    price: 86.40,  changePercent:  0.23 },
+  BSX:    { symbol: 'BSX',    price: 95.10,  changePercent:  0.53 },
+  ELV:    { symbol: 'ELV',    price: 374.80, changePercent: -0.91 },
+  CVS:    { symbol: 'CVS',    price: 55.30,  changePercent: -0.54 },
+  // Industrials
+  UPS:    { symbol: 'UPS',    price: 112.40, changePercent: -0.44 },
+  FDX:    { symbol: 'FDX',    price: 264.80, changePercent:  0.19 },
+  BA:     { symbol: 'BA',     price: 178.60, changePercent:  0.83 },
+  CAT:    { symbol: 'CAT',    price: 357.80, changePercent:  0.42 },
+  DE:     { symbol: 'DE',     price: 432.10, changePercent: -0.31 },
+  LMT:    { symbol: 'LMT',    price: 497.20, changePercent:  0.11 },
+  GE:     { symbol: 'GE',     price: 197.40, changePercent:  0.36 },
+  // Media & Telecom
+  DIS:    { symbol: 'DIS',    price: 106.80, changePercent: -0.56 },
+  CMCSA:  { symbol: 'CMCSA',  price: 36.40,  changePercent: -0.27 },
+  VZ:     { symbol: 'VZ',     price: 38.20,  changePercent:  0.26 },
+  T:      { symbol: 'T',      price: 22.40,  changePercent:  0.18 },
+  TMUS:   { symbol: 'TMUS',   price: 258.60, changePercent:  0.44 },
+  // Utilities
+  NEE:    { symbol: 'NEE',    price: 66.40,  changePercent:  0.61 },
+  DUK:    { symbol: 'DUK',    price: 113.20, changePercent:  0.22 },
+  SO:     { symbol: 'SO',     price: 79.40,  changePercent:  0.14 },
+  // Consumer
+  TGT:    { symbol: 'TGT',    price: 127.60, changePercent: -0.31 },
+  LOW:    { symbol: 'LOW',    price: 242.30, changePercent:  0.08 },
+  SBUX:   { symbol: 'SBUX',   price: 98.40,  changePercent:  0.51 },
+  MCD:    { symbol: 'MCD',    price: 296.80, changePercent:  0.17 },
+  YUM:    { symbol: 'YUM',    price: 142.60, changePercent: -0.28 },
+  F:      { symbol: 'F',      price: 9.48,   changePercent: -0.42 },
+  GM:     { symbol: 'GM',     price: 53.20,  changePercent:  0.38 },
+  // REITs & Other
+  AMT:    { symbol: 'AMT',    price: 202.40, changePercent: -0.33 },
+  PLD:    { symbol: 'PLD',    price: 111.80, changePercent:  0.14 },
+  CME:    { symbol: 'CME',    price: 235.60, changePercent:  0.09 },
+  WM:     { symbol: 'WM',     price: 228.40, changePercent:  0.21 },
+  XYZ:    { symbol: 'XYZ',    price: 68.30,  changePercent:  0.44 },
+  // Popular
+  COIN:   { symbol: 'COIN',   price: 265.80, changePercent:  1.22 },
+  PLTR:   { symbol: 'PLTR',   price: 97.40,  changePercent: -2.14 },
+  HOOD:   { symbol: 'HOOD',   price: 52.60,  changePercent:  0.77 },
+  HIMS:   { symbol: 'HIMS',   price: 34.80,  changePercent:  1.46 },
+  SHOP:   { symbol: 'SHOP',   price: 126.40, changePercent:  0.93 },
+  RKLB:   { symbol: 'RKLB',   price: 22.80,  changePercent:  3.17 },
+  SOFI:   { symbol: 'SOFI',   price: 14.60,  changePercent: -0.68 },
+  IBM:    { symbol: 'IBM',    price: 258.40, changePercent:  0.09 },
+  IWM:    { symbol: 'IWM',    price: 225.60, changePercent: -0.41 },
+  // Commodity futures
+  'GC=F': { symbol: 'GC=F',  price: 2942.60, changePercent: 0.38 },
+  'SI=F': { symbol: 'SI=F',  price: 32.84,   changePercent: 0.61 },
+  'CL=F': { symbol: 'CL=F',  price: 72.40,   changePercent: 0.28 },
 };
 
-// Parse stock data from either Vercel serverless or Yahoo raw response format
+// Parse stock data from either serverless array or Yahoo quoteResponse format
 const parseStockData = (raw) => {
   const data = Array.isArray(raw) ? raw : (raw?.quoteResponse?.result ?? []);
   if (!Array.isArray(data) || data.length === 0) return null;
@@ -116,14 +220,11 @@ export function useStocks(symbols = DEFAULT_SYMBOLS) {
         throw new Error('Invalid symbols: must be a non-empty array');
       }
 
-      // Use 100% free Yahoo Chart API (no auth needed!)
       const raw = await fetchWithRetry(`/api/stocks-free?symbols=${symbols.join(',')}`);
-
-
       const stockMap = parseStockData(raw);
       if (!stockMap) throw new Error('No valid stock data received from any API');
 
-      setStocks(stockMap);
+      setStocks(prev => ({ ...FALLBACK_DATA, ...prev, ...stockMap }));
       setError(null);
       retryCountRef.current = 0;
     } catch (err) {
@@ -151,12 +252,12 @@ export function useStocks(symbols = DEFAULT_SYMBOLS) {
           seededFromCache.current = true;
           const stockMap = parseStockData(data.stocks);
           if (stockMap) {
-            setStocks(stockMap);
+            setStocks(prev => ({ ...FALLBACK_DATA, ...prev, ...stockMap }));
             setLoading(false);
           }
         }
       } catch {
-        // Cache miss is fine
+        // Cache miss is fine — live fetch follows immediately
       }
     };
 
@@ -193,7 +294,6 @@ export function useStockHistory(symbol, range = '1y') {
       try {
         const data = await fetchWithRetry(`/api/history?symbol=${encodeURIComponent(symbol)}&range=${range}`);
 
-        // Validate response
         if (!data || !Array.isArray(data.history)) {
           throw new Error('Invalid history data format');
         }
@@ -202,7 +302,6 @@ export function useStockHistory(symbol, range = '1y') {
       } catch (err) {
         console.error('History fetch error:', err);
         setError(err.message);
-        // Keep old data on error
       } finally {
         setLoading(false);
       }

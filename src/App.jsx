@@ -31,7 +31,7 @@ const ASSETS = {
   NVDA: { name: 'Nvidia', price: 174, color: '#76B900' },
   META: { name: 'Meta', price: 668, color: '#0668E1' },
   TSLA: { name: 'Tesla', price: 421, color: '#CC0000' },
-  BRK: { name: 'Berkshire', price: 465, color: '#004080' },
+  'BRK-B': { name: 'Berkshire', price: 499, color: '#004080' },
   LLY: { name: 'Eli Lilly', price: 1098, color: '#DC143C' },
   V: { name: 'Visa', price: 305, color: '#1A1F71' },
   UNH: { name: 'UnitedHealth', price: 520, color: '#002677' },
