@@ -14,6 +14,13 @@ Note: Individual deployment URLs (rise-xxxxx-nulljosh.vercel.app) change each de
 ## Project Vision
 Rise is a high-alpha, low-latency financial terminal designed for extreme efficiency. It combines prediction markets (Polymarket, Kalshi) with quantitative simulations and live market data into a unified dashboard optimized for minimal memory footprint and bandwidth usage.
 
+## Design References
+- **Bloomberg Terminal**: Data density, monospace readouts, real-time everything, operator mindset
+- **Palantir Gotham**: Situation Monitor concept, threat/opportunity grid, dark operator aesthetic
+
+## Simulator Note
+The $1→$1T sim reaches target in under 1 minute intentionally — it is a speed demo, not a realistic trading model. Fibonacci milestones are checkpoints, not pauses.
+
 ## Architecture Goals
 - **Memory**: Target <10MB runtime footprint ("The 10MB Dashboard")
 - **Latency**: Sub-100ms data updates via Delta-Threshold algorithm
@@ -309,10 +316,14 @@ git push
 - **Flow**: Alert trigger → REST endpoint → Order execution
 - **Latency**: ~500ms end-to-end
 
-### cTrader Integration
-- **Approach**: cTrader Open API (REST + WebSocket)
-- **Features**: Real-time quotes, order management, historical data
-- **Use Case**: Forex and CFDs
+### cTrader (Priority Integration)
+- **API**: cTrader Open API (REST + WebSocket)
+- **Use case**: CFD auto-trading from sim signals
+- **Flow**: Sim generates signal → cTrader order execution
+- **Auth**: OAuth2, client credentials
+- **Instruments**: Forex, indices, commodities (CFDs)
+- **Latency**: ~50ms quoted
+- **Status**: Planned
 
 ### Wealthsimple Trade
 - **Status**: No public API (as of 2025)

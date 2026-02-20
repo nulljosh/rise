@@ -759,34 +759,14 @@ const reset = useCallback(() => {
           <span style={{ width: 1, height: 14, background: t.border }} />
           <button
             onClick={() => setShowMacro(!showMacro)}
-            style={{
-              background: showMacro ? t.accent : t.surface,
-              border: 'none',
-              borderRadius: 6,
-              padding: '5px 10px',
-              color: showMacro ? '#fff' : t.textSecondary,
-              fontSize: 10,
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'background 0.15s'
-            }}
+            style={{ background: showMacro ? t.accent : t.surface, border: 'none', borderRadius: 6, padding: '5px 10px', color: showMacro ? '#fff' : t.textSecondary, fontSize: 10, fontWeight: 600, cursor: 'pointer' }}
           >
             MACRO
           </button>
           {isFree && (
             <button
               onClick={() => setShowPricing(true)}
-              style={{
-                background: t.blue,
-                border: 'none',
-                borderRadius: 6,
-                padding: '5px 10px',
-                color: '#fff',
-                fontSize: 10,
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'background 0.15s'
-              }}
+              style={{ background: '#0071e3', border: 'none', borderRadius: 6, padding: '5px 10px', color: '#fff', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}
             >
               UPGRADE
             </button>
@@ -794,16 +774,7 @@ const reset = useCallback(() => {
           <button
             onClick={() => setDark(!dark)}
             aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-            style={{
-              background: t.surface,
-              border: 'none',
-              borderRadius: 6,
-              padding: 5,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
+            style={{ background: t.surface, border: 'none', borderRadius: 6, padding: 5, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.textSecondary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               {dark ? (
@@ -816,7 +787,7 @@ const reset = useCallback(() => {
         </div>
       </header>
 
-      {/* Macro Banner */}
+      {/* Macro Banner (toggle) */}
       {showMacro && (
         <div style={{ padding: '12px 16px', background: t.surface, borderBottom: `1px solid ${t.border}` }}>
           <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', fontSize: 11, color: t.textSecondary }}>
@@ -833,148 +804,205 @@ const reset = useCallback(() => {
       <Ticker items={tickerItems} theme={t} />
 
       <div style={{ padding: 16, maxWidth: 1400, margin: '0 auto' }}>
-        {/* TRADING SIMULATOR */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: t.green }}>TRADING SIMULATOR</div>
-          <Card dark={dark} t={t} style={{ padding: 16 }}>
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 12, color: t.textSecondary }}>
-                $1 → ${targetTrillion ? '1T' : '1B'} • 61 assets • Fib levels
-                {targetTrillion && <span style={{ marginLeft: 8, color: t.green, fontWeight: 600 }}>🚀 HYPER MODE</span>}
+
+        {/* HERO */}
+        <div style={{ textAlign: 'center', padding: '40px 16px 32px', marginBottom: 24 }}>
+          {busted ? (
+            <>
+              <div style={{ fontSize: 'clamp(56px, 10vw, 112px)', fontWeight: 700, color: t.red, fontVariantNumeric: 'tabular-nums', letterSpacing: '-3px', lineHeight: 1 }}>BUSTED</div>
+              <div style={{ fontSize: 15, color: t.textSecondary, marginTop: 12 }}>
+                {formatNumber(balance)} &middot; {realWorldTime(tick)} of trading &middot; {exits.length} trades
+              </div>
+            </>
+          ) : won ? (
+            <>
+              <div style={{ fontSize: 'clamp(56px, 10vw, 112px)', fontWeight: 700, color: t.green, fontVariantNumeric: 'tabular-nums', letterSpacing: '-3px', lineHeight: 1 }}>
+                {targetTrillion ? '$1T' : '$1B'}
+              </div>
+              <div style={{ fontSize: 15, color: t.textSecondary, marginTop: 12 }}>
+                {exits.length} trades &middot; {winRate.toFixed(0)}% wins &middot; {formatTime(elapsedTime)}
+              </div>
+              {biggestWinner && (
+                <div style={{ fontSize: 12, marginTop: 6 }}>
+                  <span style={{ color: t.green }}>MVP: {biggestWinner[0]} (+{formatNumber(biggestWinner[1]).replace('$', '')})</span>
+                  {biggestLoser && <span style={{ color: t.red }}> &middot; Worst: {biggestLoser[0]} ({formatNumber(biggestLoser[1]).replace('$', '')})</span>}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize: 'clamp(56px, 10vw, 112px)', fontWeight: 700, color: t.text, fontVariantNumeric: 'tabular-nums', letterSpacing: '-3px', lineHeight: 1 }}>
+                {formatNumber(equity)}
+              </div>
+              <div style={{ fontSize: 15, marginTop: 12 }}>
+                <span style={{ color: pnl >= 0 ? t.green : t.red }}>
+                  {pnl >= 0 ? '+' : ''}{formatNumber(Math.abs(pnl)).replace('$', '')}
+                </span>
+                {position
+                  ? <span style={{ color: t.textSecondary, fontSize: 13 }}> &middot; in {position.sym}</span>
+                  : <span style={{ color: t.textTertiary, fontSize: 13 }}> &middot; {winRate.toFixed(0)}% WR &middot; {exits.length} trades</span>
+                }
+              </div>
+            </>
+          )}
+
+          {/* Chart toggle */}
+          <div style={{ marginTop: 20, marginBottom: showChart ? 12 : 0 }}>
+            <button
+              onClick={() => setShowChart(!showChart)}
+              style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 8, padding: '5px 14px', fontSize: 11, color: t.textSecondary, cursor: 'pointer', fontFamily: font }}
+            >
+              {showChart ? 'Hide Chart' : 'Show Chart'}
+            </button>
+          </div>
+
+          {/* Chart */}
+          {showChart && (
+            <div style={{ background: t.surface, borderRadius: 14, padding: 14, marginBottom: 4, maxWidth: 600, margin: '0 auto 16px' }}>
+              <svg width="100%" height="120" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+                <line x1="0" y1={toY(0)} x2={W} y2={toY(0)} stroke={t.border} strokeDasharray="4" />
+                {SYMS.map(sym => prices[sym].length > 1 && (
+                  <path
+                    key={sym}
+                    d={makePath(sym)}
+                    fill="none"
+                    stroke={ASSETS[sym].color}
+                    strokeWidth={position?.sym === sym ? 2.5 : 1}
+                    opacity={position ? (position.sym === sym ? 1 : 0.15) : 0.5}
+                  />
+                ))}
+              </svg>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                {SYMS.map(sym => (
+                  <div key={sym} style={{ display: 'flex', alignItems: 'center', gap: 4, opacity: position ? (position.sym === sym ? 1 : 0.3) : 0.6 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: 1, background: ASSETS[sym].color }} />
+                    <span style={{ fontSize: 9, color: t.textTertiary }}>{sym}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Start / Stop + Reset */}
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 24 }}>
+            <button
+              onClick={() => setRunning(!running)}
+              disabled={busted || won}
+              style={{ padding: '14px 40px', borderRadius: 100, border: 'none', fontSize: 16, fontWeight: 600, fontFamily: font, background: (busted || won) ? t.border : running ? t.red : t.green, color: '#fff', cursor: (busted || won) ? 'default' : 'pointer', minWidth: 140 }}
+            >
+              {busted ? 'Busted' : won ? 'Won!' : running ? 'Stop' : 'Start'}
+            </button>
+            <button
+              onClick={reset}
+              style={{ padding: '14px 20px', borderRadius: 100, border: `1px solid ${t.border}`, background: 'transparent', color: t.textSecondary, fontFamily: font, fontSize: 20, cursor: 'pointer' }}
+            >
+              ↺
+            </button>
+          </div>
+          <div style={{ fontSize: 10, color: t.textTertiary, marginTop: 10 }}>
+            [Space] Start/Stop &middot; [R] Reset
+          </div>
+        </div>
+
+        {/* TWO-COLUMN GRID */}
+        <div className="rise-grid">
+
+          {/* LEFT: Situation Monitor */}
+          <Card dark={dark} t={t} style={{ padding: 20 }}>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={t.textSecondary} strokeWidth="1.5">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', color: t.textSecondary }}>SITUATION MONITOR</span>
+              <BlinkingDot color={t.green} speed={3} />
+            </div>
+
+            {/* Macro rows */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+              <div style={{ fontSize: 12, color: t.textSecondary, display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: t.red }}>AI Bubble</span>
+                <span>Mag7 = 35% S&P 500</span>
+              </div>
+              <div style={{ fontSize: 12, color: t.textSecondary, display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: t.yellow }}>US Debt</span>
+                <span>$36T / 120% GDP</span>
+              </div>
+              <div style={{ fontSize: 12, color: t.textSecondary, display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: t.cyan }}>BTC ETF</span>
+                <span>+$40B inflow</span>
+              </div>
+              <div style={{ fontSize: 12, color: t.textSecondary, display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: t.green }}>Gold CB</span>
+                <span>+1,037t reserves</span>
               </div>
             </div>
 
-            {busted && (
-              <div style={{ background: dark ? '#7f1d1d' : '#fee2e2', borderRadius: 12, padding: 16, marginBottom: 16, textAlign: 'center' }}>
-                <div style={{ fontSize: 20 }}>💀</div>
-                <div style={{ fontWeight: 600, color: dark ? '#fff' : '#7f1d1d' }}>Busted at {formatNumber(balance)}</div>
-                <div style={{ fontSize: 11, color: dark ? '#fca5a5' : '#991b1b', marginTop: 4 }}>Real-world: {realWorldTime(tick)}</div>
-              </div>
-            )}
-            {won && (
-              <div style={{ background: dark ? '#14532d' : '#d1fae5', borderRadius: 12, padding: 16, marginBottom: 16, textAlign: 'center' }}>
-                <div style={{ fontSize: 20 }}>🏆</div>
-                <div style={{ fontWeight: 600, color: dark ? '#fff' : '#14532d' }}>${targetTrillion ? '1T' : '1B'} REACHED!</div>
-                <div style={{ fontSize: 12, color: dark ? '#86efac' : '#15803d' }}>{exits.length} trades • {winRate.toFixed(0)}% wins • {formatTime(elapsedTime)}</div>
-                <div style={{ fontSize: 11, color: dark ? '#86efac' : '#15803d', marginTop: 4 }}>Real-world: {realWorldTime(tick)} of trading</div>
-                {biggestWinner && <div style={{ fontSize: 11, color: dark ? '#4ade80' : '#16a34a', marginTop: 4 }}>MVP: {biggestWinner[0]} (+{formatNumber(biggestWinner[1]).replace('$', '')})</div>}
-                {biggestLoser && <div style={{ fontSize: 11, color: dark ? '#f87171' : '#dc2626', marginTop: 2 }}>Worst: {biggestLoser[0]} ({formatNumber(biggestLoser[1]).replace('$', '')})</div>}
-              </div>
-            )}
+            {/* Divider */}
+            <div style={{ height: 1, background: t.border, marginBottom: 16 }} />
 
-            {!busted && !won && (
-              <div style={{ background: t.surface, borderRadius: 14, padding: 16, marginBottom: 14 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span style={{ fontSize: 36, fontWeight: 700, color: t.text }}>{formatNumber(equity)}</span>
-                  <span style={{ fontSize: 16, color: pnl >= 0 ? t.green : t.red }}>
-                    {pnl >= 0 ? '+' : ''}{formatNumber(Math.abs(pnl)).replace('$', '')}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: t.textSecondary, marginTop: 8 }}>
-                  <span>#{tick} {running && <span style={{ color: t.green }}>● live</span>}</span>
-                  <span>{winRate.toFixed(0)}% wins • {exits.length} trades</span>
-                </div>
-                <div style={{ fontSize: 11, color: t.textTertiary, marginTop: 4 }}>
-                  Time: {formatTime(elapsedTime)} {position && `• Position: ${formatNumber(position.size * position.entry).replace('$', '')} in ${position.sym}`}
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: t.textTertiary, marginTop: 4, paddingTop: 4, borderTop: `1px solid ${t.border}` }}>
-                  <span>PM: {pmExits} trades ({pmWinRate.toFixed(0)}% wins) • {pmBalance >= 0 ? '+' : ''}{formatNumber(pmBalance).replace('$', '')}</span>
-                  <span style={{ color: runway < 30 ? t.red : runway < 90 ? t.yellow : t.green }}>
-                    Runway: {runway.toFixed(0)}d (${apiCostPerDay}/day)
-                  </span>
+            {/* Sim stats grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', color: t.textTertiary, marginBottom: 3 }}>EQUITY</div>
+                <div style={{ fontSize: 14, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{formatNumber(equity)}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', color: t.textTertiary, marginBottom: 3 }}>P&amp;L</div>
+                <div style={{ fontSize: 14, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: pnl >= 0 ? t.green : t.red }}>
+                  {pnl >= 0 ? '+' : ''}{formatNumber(Math.abs(pnl)).replace('$', '')}
                 </div>
               </div>
-            )}
-
-            <div style={{ background: t.surface, borderRadius: 14, padding: 14, marginBottom: 14, minHeight: 160, position: 'relative' }}>
-              <button
-                onClick={() => setShowChart(!showChart)}
-                style={{ position: 'absolute', top: 10, right: 10, background: t.border, border: 'none', borderRadius: 6, padding: '4px 8px', fontSize: 10, color: t.textSecondary, cursor: 'pointer', zIndex: 10 }}
-              >
-                {showChart ? 'Hide Chart' : 'Show Chart'}
-              </button>
-              {showChart ? (
-                <>
-                  <svg width="100%" height="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
-                    <line x1="0" y1={toY(0)} x2={W} y2={toY(0)} stroke={t.border} strokeDasharray="4" />
-                    {SYMS.map(sym => prices[sym].length > 1 && (
-                      <path
-                        key={sym}
-                        d={makePath(sym)}
-                        fill="none"
-                        stroke={ASSETS[sym].color}
-                        strokeWidth={position?.sym === sym ? 2.5 : 1}
-                        opacity={position ? (position.sym === sym ? 1 : 0.15) : 0.5}
-                      />
-                    ))}
-                  </svg>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
-                    {SYMS.map(sym => (
-                      <div key={sym} style={{ display: 'flex', alignItems: 'center', gap: 4, opacity: position ? (position.sym === sym ? 1 : 0.3) : 0.6 }}>
-                        <div style={{ width: 6, height: 6, borderRadius: 1, background: ASSETS[sym].color }} />
-                        <span style={{ fontSize: 9, color: t.textTertiary }}>{sym}</span>
-                      </div>
-                    ))}
+              <div>
+                <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', color: t.textTertiary, marginBottom: 3 }}>WIN RATE</div>
+                <div style={{ fontSize: 14, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{winRate.toFixed(0)}%</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', color: t.textTertiary, marginBottom: 3 }}>TRADES</div>
+                <div style={{ fontSize: 14, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{exits.length}</div>
+              </div>
+              {position && (
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', color: t.textTertiary, marginBottom: 3 }}>POSITION</div>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>
+                    <span style={{ color: ASSETS[position.sym].color }}>{position.sym}</span>
+                    <span style={{ color: t.textSecondary, fontSize: 11, marginLeft: 6 }}>
+                      ${position.entry.toFixed(2)} &middot; {unrealized >= 0 ? '+' : ''}{unrealized.toFixed(2)} unrealized
+                    </span>
                   </div>
-                </>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 140 }}>
-                  <div style={{ fontSize: 48, fontWeight: 700, color: t.text }}>{formatNumber(equity)}</div>
+                </div>
+              )}
+              <div>
+                <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', color: t.textTertiary, marginBottom: 3 }}>RUNTIME</div>
+                <div style={{ fontSize: 14, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{elapsedTime > 0 ? formatTime(elapsedTime) : '—'}</div>
+              </div>
+              {runStats && (
+                <div>
+                  <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', color: t.textTertiary, marginBottom: 3 }}>ALL-TIME</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{runStats.wins}W / {runStats.losses}L</div>
                 </div>
               )}
             </div>
 
-            {position && (
-              <div style={{ background: t.surface, borderRadius: 12, padding: 12, marginBottom: 14, display: 'flex', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: ASSETS[position.sym].color }}>{position.sym}</div>
-                  <div style={{ fontSize: 10, color: t.textSecondary }}>${position.entry.toFixed(2)} × {position.size}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 18, fontWeight: 600, color: unrealized >= 0 ? t.green : t.red }}>
-                    {unrealized >= 0 ? '+' : ''}{unrealized.toFixed(2)}
-                  </div>
-                  <div style={{ fontSize: 10, color: t.textSecondary }}>SL ${position.stop.toFixed(2)}</div>
-                </div>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
+            {/* Trade log (collapsible) */}
+            <div style={{ background: t.surface, borderRadius: 10, overflow: 'hidden', marginBottom: 16 }}>
               <button
-                onClick={() => setRunning(!running)}
-                disabled={busted || won}
-                style={{ flex: 1, padding: 16, borderRadius: 12, border: 'none', fontSize: 16, fontWeight: 600, fontFamily: font, background: (busted || won) ? t.border : running ? t.red : t.green, color: '#fff', cursor: (busted || won) ? 'default' : 'pointer' }}
+                onClick={() => setShowTrades(!showTrades)}
+                style={{ width: '100%', padding: '10px 12px', background: 'transparent', border: 'none', display: 'flex', justifyContent: 'space-between', fontFamily: font, fontSize: 11, color: t.textTertiary, cursor: 'pointer' }}
               >
-                {busted ? 'Busted' : won ? 'Won!' : running ? 'Stop' : 'Start'}
-              </button>
-              <button onClick={reset} style={{ padding: 16, borderRadius: 12, border: `1px solid ${t.border}`, background: 'transparent', color: t.textSecondary, fontFamily: font, fontSize: 16, cursor: 'pointer' }}>↺</button>
-            </div>
-
-<div style={{ textAlign: 'center', fontSize: 10, color: t.textTertiary, marginBottom: 14, marginTop: 14 }}>
-              [Space] Start/Stop/Restart • [R] Reset
-            </div>
-
-            <div style={{ background: t.surface, borderRadius: 12, overflow: 'hidden' }}>
-              <button onClick={() => setShowTrades(!showTrades)} style={{ width: '100%', padding: 12, background: 'transparent', border: 'none', display: 'flex', justifyContent: 'space-between', fontFamily: font, fontSize: 13, color: t.textTertiary, cursor: 'pointer' }}>
-                <span>all trades ({exits.length}) • stocks: {exits.length - pmExits} • PM: {pmExits}</span>
+                <span>trades ({exits.length}) &middot; stocks: {exits.length - pmExits} &middot; PM: {pmExits}</span>
                 <span>{showTrades ? '−' : '+'}</span>
               </button>
               {showTrades && (
-                <div style={{ padding: '0 12px 12px', maxHeight: 180, overflow: 'auto' }}>
+                <div style={{ padding: '0 12px 12px', maxHeight: 160, overflow: 'auto' }}>
                   {trades.length === 0 ? (
                     <div style={{ color: t.textTertiary, fontSize: 12, textAlign: 'center', padding: 8 }}>waiting...</div>
                   ) : (
                     [...trades].reverse().slice(0, 20).map((tr, i) => (
                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '4px 0', borderBottom: `1px solid ${t.border}` }}>
-                        <span style={{
-                          color: tr.type === 'BUY' ? t.accent :
-                                tr.type.startsWith('PM_') ? t.cyan :
-                                parseFloat(tr.pnl) >= 0 ? t.green : t.red,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 4
-                        }}>
-                          {tr.type.startsWith('PM_') && <span style={{ fontSize: 9, opacity: 0.6 }}>🎲</span>}
+                        <span style={{ color: tr.type === 'BUY' ? t.accent : tr.type.startsWith('PM_') ? t.cyan : parseFloat(tr.pnl) >= 0 ? t.green : t.red }}>
                           {tr.type} {tr.sym}
                         </span>
                         {tr.pnl && <span style={{ color: parseFloat(tr.pnl) >= 0 ? t.green : t.red }}>{parseFloat(tr.pnl) >= 0 ? '+' : ''}{tr.pnl}</span>}
@@ -985,147 +1013,86 @@ const reset = useCallback(() => {
               )}
             </div>
 
-            {runStats && (
-              <div style={{ background: t.surface, borderRadius: 12, padding: 12, marginTop: 8 }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: t.textSecondary, marginBottom: 6 }}>RUN HISTORY</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: t.textTertiary }}>
-                  <span>{runStats.wins}W / {runStats.losses}L ({runStats.winRate}%)</span>
-                  <span>{runStats.totalRuns} runs</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: t.textTertiary, marginTop: 4 }}>
-                  <span>Avg trades: {runStats.avgTrades}</span>
-                  <span>Avg trade WR: {runStats.avgWinRate}%</span>
-                </div>
+            {/* Footer */}
+            <div style={{ fontSize: 11, color: t.textTertiary, fontStyle: 'italic', textAlign: 'center' }}>
+              Nothing ever happens.
+            </div>
+          </Card>
+
+          {/* RIGHT: Predictions */}
+          <Card dark={dark} t={t} style={{ padding: 20 }}>
+            {/* Header */}
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', color: t.textSecondary, marginBottom: 14 }}>PREDICTIONS</div>
+
+            {/* Category filter pills */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto', paddingBottom: 4 }}>
+              {MARKET_CATEGORIES.map(cat => (
+                <button key={cat.id} onClick={() => setPmCategory(cat.id)} style={{
+                  padding: '5px 10px', borderRadius: 16,
+                  border: pmCategory === cat.id ? `1.5px solid ${t.accent}` : `1px solid ${t.border}`,
+                  background: pmCategory === cat.id ? `${t.accent}15` : 'transparent',
+                  color: pmCategory === cat.id ? t.accent : t.textTertiary,
+                  fontSize: 11, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: font,
+                }}>{cat.label}</button>
+              ))}
+              <button onClick={() => setShowHighProb(!showHighProb)} style={{
+                padding: '5px 10px', borderRadius: 16,
+                border: showHighProb ? `1.5px solid ${t.green}` : `1px solid ${t.border}`,
+                background: showHighProb ? `${t.green}15` : 'transparent',
+                color: showHighProb ? t.green : t.textTertiary,
+                fontSize: 11, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: font,
+              }}>90%+ Easy $</button>
+            </div>
+
+            {/* Market list */}
+            {pmLoading && (
+              <div style={{ textAlign: 'center', padding: 40 }}>
+                <div style={{ width: 24, height: 24, margin: '0 auto', border: `2px solid ${t.border}`, borderTop: `2px solid ${t.accent}`, borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                <div style={{ color: t.textTertiary, fontSize: 12, marginTop: 12 }}>Loading markets...</div>
               </div>
             )}
+            {pmError && <div style={{ textAlign: 'center', padding: 20, color: t.red, fontSize: 12 }}>Error loading markets</div>}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 420, overflowY: 'auto', paddingRight: 4 }}>
+              {filteredMarkets.map(m => (
+                <a
+                  key={m.id}
+                  href={`https://polymarket.com/event/${m.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: 'none', color: 'inherit' }}
+                  onClick={(e) => handleMarketClick(e, m)}
+                  onMouseEnter={() => setHoveredMarket(m)}
+                  onMouseMove={handleMouseMove}
+                  onMouseLeave={() => setHoveredMarket(null)}
+                >
+                  <Card dark={dark} t={t} style={{ padding: 12, cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      {m.image && <img src={m.image} alt="" style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover' }} />}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{tldr(m.question, 55)}</div>
+                        <div style={{ display: 'flex', gap: 8, fontSize: 10, color: t.textTertiary }}>
+                          <span>Vol: ${(m.volumeTotal / 1000000).toFixed(1)}M</span>
+                          {m.endDate && <span>Ends: {new Date(m.endDate).toLocaleDateString()}</span>}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        {m.probability !== null && (
+                          <div style={{ fontSize: 20, fontWeight: 700, color: m.probability > 0.5 ? t.green : t.red }}>
+                            {(m.probability * 100).toFixed(0)}%
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                </a>
+              ))}
+            </div>
           </Card>
         </div>
 
-        {/* POLYMARKET SECTION */}
-        <div style={{ marginBottom: 24 }}>
-
-          <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto' }}>
-            {MARKET_CATEGORIES.map(cat => (
-              <button key={cat.id} onClick={() => setPmCategory(cat.id)} style={{
-                padding: '6px 12px', borderRadius: 16,
-                border: pmCategory === cat.id ? `1.5px solid ${t.accent}` : `1px solid ${t.border}`,
-                background: pmCategory === cat.id ? `${t.accent}15` : 'transparent',
-                color: pmCategory === cat.id ? t.accent : t.textTertiary,
-                fontSize: 11, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap'
-              }}>{cat.label}</button>
-            ))}
-            <button onClick={() => setShowHighProb(!showHighProb)} style={{
-              padding: '6px 12px', borderRadius: 16,
-              border: showHighProb ? `1.5px solid ${t.green}` : `1px solid ${t.border}`,
-              background: showHighProb ? `${t.green}15` : 'transparent',
-              color: showHighProb ? t.green : t.textTertiary,
-              fontSize: 11, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap'
-            }}>90%+ Easy $</button>
-          </div>
-
-          {pmLoading && (
-            <div style={{ textAlign: 'center', padding: 40 }}>
-              <div style={{
-                width: 24, height: 24, margin: '0 auto',
-                border: `2px solid ${t.border}`,
-                borderTop: `2px solid ${t.accent}`,
-                borderRadius: '50%',
-                animation: 'spin 0.8s linear infinite'
-              }} />
-              <div style={{ color: t.textTertiary, fontSize: 12, marginTop: 12 }}>Loading markets...</div>
-            </div>
-          )}
-          {pmError && <div style={{ textAlign: 'center', padding: 20, color: t.red, fontSize: 12 }}>Error loading markets</div>}
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 480, overflowY: 'auto', paddingRight: 4 }}>
-            {filteredMarkets.map(m => (
-              <a
-                key={m.id}
-                href={`https://polymarket.com/event/${m.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ textDecoration: 'none', color: 'inherit' }}
-                onClick={(e) => handleMarketClick(e, m)}
-                onMouseEnter={() => setHoveredMarket(m)}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={() => setHoveredMarket(null)}
-              >
-                <Card dark={dark} t={t} style={{ padding: 12, cursor: 'pointer' }}>
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                    {m.image && <img src={m.image} alt="" style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover' }} />}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{tldr(m.question, 55)}</div>
-                      <div style={{ display: 'flex', gap: 8, fontSize: 10, color: t.textTertiary }}>
-                        <span>Vol: ${(m.volumeTotal / 1000000).toFixed(1)}M</span>
-                        {m.endDate && <span>Ends: {new Date(m.endDate).toLocaleDateString()}</span>}
-                      </div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      {m.probability !== null && (
-                        <div style={{ fontSize: 20, fontWeight: 700, color: m.probability > 0.5 ? t.green : t.red }}>
-                          {(m.probability * 100).toFixed(0)}%
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              </a>
-            ))}
-          </div>
-
-          {(hoveredMarket || tappedMarket) && (() => {
-            const market = tappedMarket || hoveredMarket;
-            const isMobile = !!tappedMarket;
-            return (
-              <div
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  position: 'fixed',
-                  left: isMobile ? '50%' : mousePos.x + 15,
-                  top: isMobile ? '50%' : mousePos.y + 15,
-                  transform: isMobile ? 'translate(-50%, -50%)' : 'none',
-                  background: dark ? 'rgba(20,20,22,0.95)' : 'rgba(255,255,255,0.95)',
-                  backdropFilter: 'blur(20px)',
-                  border: `1px solid ${t.border}`,
-                  borderRadius: 12,
-                  padding: 14,
-                  maxWidth: 320,
-                  zIndex: 1000,
-                  boxShadow: dark ? '0 8px 32px rgba(0,0,0,0.5)' : '0 8px 32px rgba(0,0,0,0.15)',
-                  pointerEvents: isMobile ? 'auto' : 'none',
-                }}>
-                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, lineHeight: 1.4 }}>{market.question}</div>
-                {market.description && (
-                  <div style={{ fontSize: 11, color: t.textSecondary, marginBottom: 8, lineHeight: 1.5 }}>
-                    {market.description.length > 200 ? market.description.slice(0, 200) + '...' : market.description}
-                  </div>
-                )}
-                <div style={{ display: 'flex', gap: 12, fontSize: 10, color: t.textTertiary }}>
-                  <span>24h Vol: ${((market.volume24h || 0) / 1000).toFixed(0)}K</span>
-                  <span>Liquidity: ${((market.liquidity || 0) / 1000).toFixed(0)}K</span>
-                </div>
-                {isMobile && (
-                  <a
-                    href={`https://polymarket.com/event/${market.slug}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ display: 'block', fontSize: 11, color: t.cyan, marginTop: 10, textDecoration: 'underline' }}
-                  >
-                    Open on Polymarket →
-                  </a>
-                )}
-              </div>
-            );
-          })()}
-        </div>
-
-        {/* NEWS SECTION - DISABLED (API BROKEN) */}
-        {/* <div style={{ marginBottom: 24 }}>
-          <NewsWidget dark={dark} t={t} />
-        </div> */}
-
         {/* Footer */}
-        <div style={{ textAlign: 'center', padding: '16px 0', fontSize: 10, color: t.textTertiary }}>
+        <div style={{ textAlign: 'center', padding: '24px 0 16px', fontSize: 10, color: t.textTertiary }}>
           &copy; 2026 &middot;{' '}
           <a href="https://heyitsmejosh.com" target="_blank" rel="noopener noreferrer" style={{ color: t.textSecondary, textDecoration: 'none' }}>
             Portfolio
@@ -1135,6 +1102,52 @@ const reset = useCallback(() => {
 
       {/* Pricing Modal */}
       {showPricing && <PricingPage dark={dark} t={t} onClose={() => setShowPricing(false)} />}
+
+      {/* Market tooltip */}
+      {(hoveredMarket || tappedMarket) && (() => {
+        const market = tappedMarket || hoveredMarket;
+        const isMobile = !!tappedMarket;
+        return (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'fixed',
+              left: isMobile ? '50%' : mousePos.x + 15,
+              top: isMobile ? '50%' : mousePos.y + 15,
+              transform: isMobile ? 'translate(-50%, -50%)' : 'none',
+              background: dark ? 'rgba(20,20,22,0.95)' : 'rgba(255,255,255,0.95)',
+              backdropFilter: 'blur(20px)',
+              border: `1px solid ${t.border}`,
+              borderRadius: 12,
+              padding: 14,
+              maxWidth: 320,
+              zIndex: 1000,
+              boxShadow: dark ? '0 8px 32px rgba(0,0,0,0.5)' : '0 8px 32px rgba(0,0,0,0.15)',
+              pointerEvents: isMobile ? 'auto' : 'none',
+            }}>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, lineHeight: 1.4 }}>{market.question}</div>
+            {market.description && (
+              <div style={{ fontSize: 11, color: t.textSecondary, marginBottom: 8, lineHeight: 1.5 }}>
+                {market.description.length > 200 ? market.description.slice(0, 200) + '...' : market.description}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 12, fontSize: 10, color: t.textTertiary }}>
+              <span>24h Vol: ${((market.volume24h || 0) / 1000).toFixed(0)}K</span>
+              <span>Liquidity: ${((market.liquidity || 0) / 1000).toFixed(0)}K</span>
+            </div>
+            {isMobile && (
+              <a
+                href={`https://polymarket.com/event/${market.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'block', fontSize: 11, color: t.cyan, marginTop: 10, textDecoration: 'underline' }}
+              >
+                Open on Polymarket →
+              </a>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }
