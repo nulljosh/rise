@@ -20,14 +20,14 @@ export const darkTheme = {
 
 export const lightTheme = {
   bg: '#F2F2F7',
-  surface: 'rgba(255,255,255,0.8)',
-  glass: 'rgba(255,255,255,0.9)',
-  glassHover: 'rgba(255,255,255,1)',
-  border: 'rgba(0,0,0,0.1)',
-  text: '#000000',
-  textSecondary: 'rgba(0,0,0,0.6)',
-  textTertiary: 'rgba(0,0,0,0.4)',
-  accent: '#431407',
+  surface: '#FFFFFF',                   // Opaque white — no grey bleed through semi-transparent layers
+  glass: 'rgba(255,255,255,0.92)',      // Slight transparency for cards on grey bg
+  glassHover: '#FFFFFF',
+  border: 'rgba(0,0,0,0.09)',
+  text: '#1C1C1E',                      // Apple off-black — less harsh than pure black
+  textSecondary: 'rgba(60,60,67,0.6)', // Apple secondary label
+  textTertiary: 'rgba(60,60,67,0.45)', // Apple tertiary — readable at small sizes
+  accent: '#0071e3',                    // Apple blue — replaces illegible dark brown
   green: '#34C759',
   red: '#FF3B30',
   yellow: '#FFCC00',
