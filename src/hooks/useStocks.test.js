@@ -8,6 +8,7 @@ global.fetch = vi.fn();
 describe('useStocks', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    global.fetch = vi.fn(); // fresh mock — prevents mockResolvedValue bleed between tests
   });
 
   it('should fetch stocks successfully', async () => {
