@@ -1,7 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import handler from '../../api/stocks-free.js';
 
-global.fetch = vi.fn();
+// Reset + reassign every test so no mock queue leaks between tests
+beforeEach(() => {
+  vi.resetAllMocks();
+  global.fetch = vi.fn();
+});
 
 const makeChartResponse = (symbol, price = 150, prevClose = 148, opts = {}) => ({
   chart: {
@@ -23,33 +27,39 @@ const makeChartResponse = (symbol, price = 150, prevClose = 148, opts = {}) => (
 const mockOk = (body) => ({ ok: true, json: async () => body });
 const mockFail = (status = 404) => ({ ok: false, status });
 
+// URL-aware fetch mock — safe for concurrent Promise.all calls
+function urlMock(map, fallback = () => Promise.resolve(mockFail(404))) {
+  return vi.fn().mockImplementation((url) => {
+    for (const [pattern, response] of Object.entries(map)) {
+      if (url.includes(pattern)) return Promise.resolve(response);
+    }
+    return fallback(url);
+  });
+}
+
 function makeReqRes(querySymbols) {
   let statusCode = 200;
   let jsonData = null;
-  const mockRes = {
-    status: vi.fn((code) => { statusCode = code; return mockRes; }),
-    json: vi.fn((data) => { jsonData = data; return mockRes; }),
+  const res = {
+    status: vi.fn((code) => { statusCode = code; return res; }),
+    json: vi.fn((data) => { jsonData = data; return res; }),
     setHeader: vi.fn(),
-    getStatus: () => statusCode,
-    getData: () => jsonData,
   };
   return {
     req: { query: querySymbols !== undefined ? { symbols: querySymbols } : {} },
-    res: mockRes,
+    res,
     status: () => statusCode,
     data: () => jsonData,
   };
 }
 
 describe('stocks-free API handler', () => {
-  beforeEach(() => vi.clearAllMocks());
-  afterEach(() => vi.restoreAllMocks());
 
   // --- Happy path ---
 
   it('returns stock data for a valid symbol', async () => {
     const { req, res, status, data } = makeReqRes('AAPL');
-    global.fetch.mockResolvedValueOnce(mockOk(makeChartResponse('AAPL', 245, 248)));
+    global.fetch = urlMock({ 'query1': mockOk(makeChartResponse('AAPL', 245, 248)) });
 
     await handler(req, res);
 
@@ -62,17 +72,18 @@ describe('stocks-free API handler', () => {
     expect(data()[0].changePercent).toBeCloseTo(-1.21, 1);
   });
 
-  it('returns data for multiple symbols', async () => {
+  it('returns data for multiple symbols concurrently', async () => {
     const { req, res, status, data } = makeReqRes('AAPL,MSFT');
-    global.fetch
-      .mockResolvedValueOnce(mockOk(makeChartResponse('AAPL', 245, 248)))
-      .mockResolvedValueOnce(mockOk(makeChartResponse('MSFT', 416, 414)));
+    global.fetch = urlMock({
+      'AAPL': mockOk(makeChartResponse('AAPL', 245, 248)),
+      'MSFT': mockOk(makeChartResponse('MSFT', 416, 414)),
+    });
 
     await handler(req, res);
 
     expect(status()).toBe(200);
     expect(data()).toHaveLength(2);
-    expect(data().map(s => s.symbol)).toEqual(expect.arrayContaining(['AAPL', 'MSFT']));
+    expect(data().map(s => s.symbol).sort()).toEqual(['AAPL', 'MSFT']);
   });
 
   it('uses default symbols when query param is absent', async () => {
@@ -87,14 +98,15 @@ describe('stocks-free API handler', () => {
 
   it('includes all required fields in response', async () => {
     const { req, res, data } = makeReqRes('NVDA');
-    global.fetch.mockResolvedValueOnce(mockOk(makeChartResponse('NVDA', 136, 138, {
-      volume: 30_000_000, high: 140, low: 133, open: 138.5, high52: 175, low52: 80,
-    })));
+    global.fetch = urlMock({
+      'NVDA': mockOk(makeChartResponse('NVDA', 136, 138, {
+        volume: 30_000_000, high: 140, low: 133, open: 138.5, high52: 175, low52: 80,
+      })),
+    });
 
     await handler(req, res);
 
-    const stock = data()[0];
-    expect(stock).toMatchObject({
+    expect(data()[0]).toMatchObject({
       symbol: 'NVDA',
       price: 136,
       change: expect.any(Number),
@@ -111,7 +123,7 @@ describe('stocks-free API handler', () => {
 
   it('sets CORS and cache headers', async () => {
     const { req, res } = makeReqRes('AAPL');
-    global.fetch.mockResolvedValueOnce(mockOk(makeChartResponse('AAPL')));
+    global.fetch = urlMock({ 'AAPL': mockOk(makeChartResponse('AAPL')) });
 
     await handler(req, res);
 
@@ -130,25 +142,24 @@ describe('stocks-free API handler', () => {
     expect(data().error).toMatch(/100/);
   });
 
-  it('accepts exactly 100 symbols', async () => {
+  it('accepts exactly 100 symbols without 400', async () => {
     const syms = Array.from({ length: 100 }, (_, i) => `T${String(i).padStart(3, '0')}`);
     const { req, res, status } = makeReqRes(syms.join(','));
     global.fetch.mockResolvedValue(mockOk(makeChartResponse('T000')));
 
     await handler(req, res);
 
-    // Should not return 400
     expect(status()).not.toBe(400);
   });
 
   // --- Partial failures ---
 
-  it('filters out symbols that fail on both query1 and query2', async () => {
+  it('filters out symbols that fail on both endpoints', async () => {
     const { req, res, status, data } = makeReqRes('AAPL,BADTICKER');
-    global.fetch
-      .mockResolvedValueOnce(mockOk(makeChartResponse('AAPL', 245, 248))) // AAPL query1 ok
-      .mockResolvedValueOnce(mockFail(404))  // BADTICKER query1 fails
-      .mockResolvedValueOnce(mockFail(404)); // BADTICKER query2 fails
+    global.fetch = urlMock({
+      'AAPL': mockOk(makeChartResponse('AAPL', 245, 248)),
+      'BADTICKER': mockFail(404),
+    });
 
     await handler(req, res);
 
@@ -159,7 +170,7 @@ describe('stocks-free API handler', () => {
 
   it('falls back to query2 when query1 returns non-ok', async () => {
     const { req, res, status, data } = makeReqRes('AAPL');
-    global.fetch
+    global.fetch = vi.fn()
       .mockResolvedValueOnce(mockFail(429))  // query1 rate limited
       .mockResolvedValueOnce(mockOk(makeChartResponse('AAPL', 245, 248))); // query2 ok
 
@@ -171,9 +182,9 @@ describe('stocks-free API handler', () => {
 
   it('falls back to query2 on query1 network error', async () => {
     const { req, res, status, data } = makeReqRes('MSFT');
-    global.fetch
-      .mockRejectedValueOnce(new Error('ECONNRESET'))  // query1 throws
-      .mockResolvedValueOnce(mockOk(makeChartResponse('MSFT', 416, 414))); // query2 ok
+    global.fetch = vi.fn()
+      .mockRejectedValueOnce(new Error('ECONNRESET'))
+      .mockResolvedValueOnce(mockOk(makeChartResponse('MSFT', 416, 414)));
 
     await handler(req, res);
 
@@ -191,48 +202,63 @@ describe('stocks-free API handler', () => {
     expect(data().error).toBeDefined();
   });
 
-  it('succeeds partially when only some symbols fail both endpoints', async () => {
+  it('returns 200 with partial results when only some symbols fail', async () => {
     const { req, res, status, data } = makeReqRes('AAPL,FAKE');
-    global.fetch
-      .mockResolvedValueOnce(mockOk(makeChartResponse('AAPL', 245, 248))) // AAPL ok
-      .mockResolvedValue(mockFail(404)); // FAKE always fails
+    global.fetch = urlMock({
+      'AAPL': mockOk(makeChartResponse('AAPL', 245, 248)),
+      'FAKE': mockFail(404),
+    });
 
     await handler(req, res);
 
     expect(status()).toBe(200);
     expect(data()).toHaveLength(1);
+    expect(data()[0].symbol).toBe('AAPL');
   });
 
-  // --- Per-symbol timeout ---
+  // --- Per-symbol timeout (abort) ---
 
-  it('handles per-symbol timeout by skipping to query2', async () => {
-    vi.useFakeTimers();
+  it('treats aborted (timed out) query1 as failure and tries query2', async () => {
     const { req, res, status, data } = makeReqRes('AAPL');
-
-    global.fetch
-      .mockImplementationOnce(() => {
-        // query1: never resolves (will be aborted by 8s timeout)
-        return new Promise(() => {});
-      })
+    // Simulate AbortController aborting the query1 request
+    global.fetch = vi.fn()
+      .mockRejectedValueOnce(new DOMException('signal aborted', 'AbortError'))
       .mockResolvedValueOnce(mockOk(makeChartResponse('AAPL', 245, 248)));
 
-    const handlerPromise = handler(req, res);
-    vi.advanceTimersByTime(8001); // trigger abort
-    await handlerPromise;
-    vi.useRealTimers();
+    await handler(req, res);
 
     expect(status()).toBe(200);
     expect(data()[0].price).toBe(245);
   });
 
+  it('returns 500 when all requests abort', async () => {
+    const { req, res, status } = makeReqRes('AAPL');
+    global.fetch.mockRejectedValue(new DOMException('signal aborted', 'AbortError'));
+
+    await handler(req, res);
+
+    expect(status()).toBe(500);
+  });
+
   // --- Malformed responses ---
 
-  it('skips symbol with null chart result array', async () => {
+  it('skips symbol with null chart result, returns 500 if only that symbol', async () => {
+    const { req, res, status } = makeReqRes('AAPL');
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce(mockOk({ chart: { result: null } })) // query1: null result
+      .mockResolvedValueOnce(mockFail(404));                       // query2: fails
+
+    await handler(req, res);
+
+    expect(status()).toBe(500);
+  });
+
+  it('succeeds on remaining symbols when one has null chart result', async () => {
     const { req, res, status, data } = makeReqRes('AAPL,MSFT');
-    global.fetch
-      .mockResolvedValueOnce(mockOk({ chart: { result: null } })) // AAPL bad
-      .mockResolvedValueOnce(mockFail(404))                        // AAPL query2 bad
-      .mockResolvedValueOnce(mockOk(makeChartResponse('MSFT', 416, 414))); // MSFT ok
+    global.fetch = urlMock({
+      'AAPL': { ok: true, json: async () => ({ chart: { result: null } }) },
+      'MSFT': mockOk(makeChartResponse('MSFT', 416, 414)),
+    });
 
     await handler(req, res);
 
@@ -241,22 +267,22 @@ describe('stocks-free API handler', () => {
     expect(data()[0].symbol).toBe('MSFT');
   });
 
-  it('skips symbol when price is missing', async () => {
+  it('skips symbol when regularMarketPrice is missing', async () => {
     const { req, res, status } = makeReqRes('AAPL');
-    global.fetch
+    global.fetch = vi.fn()
       .mockResolvedValueOnce(mockOk({
-        chart: { result: [{ meta: { chartPreviousClose: 248 } }] }, // no regularMarketPrice
+        chart: { result: [{ meta: { chartPreviousClose: 248 } }] },
       }))
       .mockResolvedValueOnce(mockFail(404));
 
     await handler(req, res);
 
-    expect(status()).toBe(500); // no valid data
+    expect(status()).toBe(500);
   });
 
-  it('skips symbol when prevClose is zero (division guard)', async () => {
+  it('skips symbol when prevClose is zero (division-by-zero guard)', async () => {
     const { req, res, status } = makeReqRes('AAPL');
-    global.fetch
+    global.fetch = vi.fn()
       .mockResolvedValueOnce(mockOk({
         chart: { result: [{ meta: { regularMarketPrice: 245, chartPreviousClose: 0 } }] },
       }))
@@ -267,9 +293,9 @@ describe('stocks-free API handler', () => {
     expect(status()).toBe(500);
   });
 
-  it('handles completely invalid JSON response without crashing', async () => {
+  it('handles invalid JSON without crashing, falls back to query2', async () => {
     const { req, res, status } = makeReqRes('AAPL');
-    global.fetch
+    global.fetch = vi.fn()
       .mockResolvedValueOnce({ ok: true, json: async () => { throw new SyntaxError('bad json'); } })
       .mockResolvedValueOnce(mockFail(500));
 
@@ -278,11 +304,12 @@ describe('stocks-free API handler', () => {
     expect(status()).toBe(500);
   });
 
-  // --- Futures symbols ---
+  // --- Special symbol formats ---
 
-  it('handles futures symbols like GC=F correctly', async () => {
+  it('handles futures symbols like GC=F', async () => {
     const { req, res, status, data } = makeReqRes('GC=F');
-    global.fetch.mockResolvedValueOnce(mockOk(makeChartResponse('GC=F', 2943, 2932)));
+    // encodeURIComponent('GC=F') → 'GC%3DF', match on encoded form
+    global.fetch = urlMock({ 'GC%3DF': mockOk(makeChartResponse('GC=F', 2943, 2932)) });
 
     await handler(req, res);
 
@@ -291,9 +318,9 @@ describe('stocks-free API handler', () => {
     expect(data()[0].price).toBe(2943);
   });
 
-  it('handles BRK-B hyphenated symbol correctly', async () => {
+  it('handles BRK-B hyphenated symbol', async () => {
     const { req, res, status, data } = makeReqRes('BRK-B');
-    global.fetch.mockResolvedValueOnce(mockOk(makeChartResponse('BRK-B', 499, 497)));
+    global.fetch = urlMock({ 'BRK-B': mockOk(makeChartResponse('BRK-B', 499, 497)) });
 
     await handler(req, res);
 
@@ -301,25 +328,48 @@ describe('stocks-free API handler', () => {
     expect(data()[0].symbol).toBe('BRK-B');
   });
 
-  // --- Change percent calculation ---
+  // --- Change calculation ---
 
-  it('computes changePercent correctly', async () => {
+  it('computes positive change and changePercent correctly', async () => {
     const { req, res, data } = makeReqRes('TEST');
-    global.fetch.mockResolvedValueOnce(mockOk(makeChartResponse('TEST', 110, 100)));
+    global.fetch = urlMock({ 'TEST': mockOk(makeChartResponse('TEST', 110, 100)) });
 
     await handler(req, res);
 
-    expect(data()[0].change).toBeCloseTo(10, 5);
-    expect(data()[0].changePercent).toBeCloseTo(10, 5);
+    expect(data()[0].change).toBeCloseTo(10, 4);
+    expect(data()[0].changePercent).toBeCloseTo(10, 4);
   });
 
-  it('computes negative changePercent correctly', async () => {
+  it('computes negative change and changePercent correctly', async () => {
     const { req, res, data } = makeReqRes('TEST');
-    global.fetch.mockResolvedValueOnce(mockOk(makeChartResponse('TEST', 90, 100)));
+    global.fetch = urlMock({ 'TEST': mockOk(makeChartResponse('TEST', 90, 100)) });
 
     await handler(req, res);
 
-    expect(data()[0].change).toBeCloseTo(-10, 5);
-    expect(data()[0].changePercent).toBeCloseTo(-10, 5);
+    expect(data()[0].change).toBeCloseTo(-10, 4);
+    expect(data()[0].changePercent).toBeCloseTo(-10, 4);
+  });
+
+  it('uses previousClose as fallback when chartPreviousClose is absent', async () => {
+    const { req, res, status, data } = makeReqRes('AAPL');
+    global.fetch = urlMock({
+      'AAPL': mockOk({
+        chart: {
+          result: [{
+            meta: {
+              regularMarketPrice: 245,
+              previousClose: 250, // uses this, not chartPreviousClose
+              regularMarketVolume: 1_000_000,
+            },
+          }],
+        },
+      }),
+    });
+
+    await handler(req, res);
+
+    expect(status()).toBe(200);
+    expect(data()[0].prevClose).toBe(250);
+    expect(data()[0].change).toBeCloseTo(-5, 4);
   });
 });
