@@ -124,7 +124,7 @@ export default function App() {
   const [perfMode, setPerfMode] = useState(true);
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const targetTrillion = balance >= 1e9; // Auto-enable at $1B
+  const targetTrillion = true;
   const trends = useRef(Object.fromEntries(SYMS.map(s => [s, 0])));
   const [tradeStats, setTradeStats] = useState({ wins: {}, losses: {} });
   const cooldownSyms = useRef({});  // sym -> tick when cooldown expires
