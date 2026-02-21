@@ -10,7 +10,6 @@ import { tldr } from './utils/helpers';
 import { StatusBar, Card } from './components/ui';
 import Ticker from './components/Ticker';
 import PricingPage from './components/PricingPage';
-import SituationMonitor from './components/SituationMonitor';
 import LiveMapBackdrop from './components/LiveMapBackdrop';
 import { createBroker } from './utils/broker';
 import { useSubscription } from './hooks/useSubscription';
@@ -794,14 +793,6 @@ const reset = useCallback(() => {
     return filtered;
   }, [markets, pmCategory, showHighProb, show15Min]);
 
-  // Live high-probability PM markets for Situation Monitor
-  const pmEdges = useMemo(() => {
-    return markets
-      .filter(m => m.probability >= 0.85 || m.probability <= 0.15)
-      .sort((a, b) => Math.max(b.probability, 1 - b.probability) - Math.max(a.probability, 1 - a.probability))
-      .slice(0, 8);
-  }, [markets]);
-
   // SIMULATIONS DISABLED - NOT NEEDED FOR POLYMARKET VIEW
   // const assetToSymbol = {
   //   btc: 'BTC-USD', eth: 'ETH-USD', gold: 'GC=F', silver: 'SI=F', oil: 'CL=F', nas100: 'NQ=F', us500: 'ES=F',
@@ -844,22 +835,6 @@ const reset = useCallback(() => {
 
   // P&L positive color: stays readable in light mode as bg greens out
   const pnlGreen = dark ? t.green : bgProgress > 0.2 ? '#0c6b27' : t.green;
-  const situationSim = {
-    equity: formatNumber(equity),
-    pnl: `${pnl >= 0 ? '+' : ''}${formatNumber(Math.abs(pnl)).replace('$', '')}`,
-    pnlPositive: pnl >= 0,
-    winRate: `${winRate.toFixed(0)}%`,
-    trades: exits.length,
-    position: position ? {
-      sym: position.sym,
-      color: ASSETS[position.sym].color,
-      entry: position.entry.toFixed(2),
-      unrealized: `${unrealized >= 0 ? '+' : ''}${unrealized.toFixed(2)}`,
-    } : null,
-    runtime: elapsedTime > 0 ? formatTime(elapsedTime) : '—',
-    allTime: runStats ? `${runStats.wins}W / ${runStats.losses}L` : null,
-  };
-
   return (
     <div style={{
       minHeight: '100dvh',
@@ -1027,19 +1002,7 @@ const reset = useCallback(() => {
         {/* TWO-COLUMN GRID */}
         <div className="rise-grid">
 
-          {/* LEFT: Unified Situation Monitor */}
-          <SituationMonitor
-            dark={dark}
-            t={t}
-            font={font}
-            sim={situationSim}
-            pmEdges={pmEdges}
-            lastPmBetMap={lastPmBetRef.current}
-            trades={trades}
-            pmExits={pmExits}
-          />
-
-          {/* RIGHT: Predictions */}
+          {/* Predictions */}
           <Card dark={dark} t={t} style={{ padding: 20 }}>
             {/* Header */}
             <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', color: t.textSecondary, marginBottom: 14 }}>PREDICTIONS</div>
