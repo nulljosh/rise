@@ -12,7 +12,7 @@ async function fetchSymbol(symbol) {
     const url = `${base}/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
 
       const response = await fetch(url, { signal: controller.signal, headers: YAHOO_HEADERS });
       clearTimeout(timeoutId);

@@ -106,6 +106,7 @@ export default function LiveMapBackdrop({ dark }) {
   const [center, setCenter] = useState(storedGeo ? { lat: storedGeo.lat, lon: storedGeo.lon } : DEFAULT_CENTER);
   const [userPosition, setUserPosition] = useState(storedGeo ? { lat: storedGeo.lat, lon: storedGeo.lon } : DEFAULT_CENTER);
   const [centerReady] = useState(true);
+  const pendingFlyRef = useRef(null);
   const [locLabel, setLocLabel] = useState(storedGeo?.label || 'Locating…');
   const [geoState, setGeoState] = useState(storedGeo ? 'cached' : 'checking');
   const [payload, setPayload] = useState({ incidents: [], trafficIncidents: [], earthquakes: [], events: [], markets: [] });
@@ -169,7 +170,11 @@ export default function LiveMapBackdrop({ dark }) {
         const next = { lat: pos.coords.latitude, lon: pos.coords.longitude };
         setCenter(next);
         setUserPosition(next);
-        mapInstanceRef.current?.flyTo({ center: [next.lon, next.lat], zoom: GEO_DETAIL_ZOOM, offset: [0, 120], duration: 850 });
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.flyTo({ center: [next.lon, next.lat], zoom: GEO_DETAIL_ZOOM, offset: [0, 120], duration: 850 });
+        } else {
+          pendingFlyRef.current = { center: [next.lon, next.lat], zoom: GEO_DETAIL_ZOOM, offset: [0, 120], duration: 850 };
+        }
         const label = 'Current location';
         setLocLabel(label);
         setGeoState('granted');
@@ -191,7 +196,11 @@ export default function LiveMapBackdrop({ dark }) {
             const next = { lat: json.latitude, lon: json.longitude };
             setCenter(next);
             if (geoErr?.code !== 1) setUserPosition(next);
-            mapInstanceRef.current?.flyTo({ center: [next.lon, next.lat], zoom: IP_FALLBACK_ZOOM, offset: [0, 120], duration: 850 });
+            if (mapInstanceRef.current) {
+              mapInstanceRef.current.flyTo({ center: [next.lon, next.lat], zoom: IP_FALLBACK_ZOOM, offset: [0, 120], duration: 850 });
+            } else {
+              pendingFlyRef.current = { center: [next.lon, next.lat], zoom: IP_FALLBACK_ZOOM, offset: [0, 120], duration: 850 };
+            }
             const label = json.city ? `${json.city} (IP)` : 'IP fallback';
             setLocLabel(label);
             persistGeo(next, label);
@@ -277,6 +286,12 @@ export default function LiveMapBackdrop({ dark }) {
         };
         map.on('moveend', onMoveEnd);
         mapInstanceRef.current = map;
+        map.on('load', () => {
+          if (pendingFlyRef.current) {
+            map.flyTo(pendingFlyRef.current);
+            pendingFlyRef.current = null;
+          }
+        });
       } catch (err) {
         console.warn('Backdrop map failed:', err.message);
       }
