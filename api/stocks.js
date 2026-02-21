@@ -1,20 +1,19 @@
+import { parseSymbols, setStockResponseHeaders, YAHOO_HEADERS } from './stocks-shared.js';
+
 // Yahoo Finance bulk quote API — single request for all symbols
 const YAHOO_URL = 'https://query1.finance.yahoo.com/v7/finance/quote';
 const TIMEOUT_MS = 10000;
-const DEFAULT_SYMBOLS = 'AAPL,MSFT,GOOGL,AMZN,META,TSLA,NVDA';
 
 export default async function handler(req, res) {
-  const raw = req.query.symbols || DEFAULT_SYMBOLS;
-  const symbolList = raw.split(',').map(s => s.trim()).filter(Boolean);
-
-  // Validate symbols — alphanumeric plus . - = ^ (covers BRK-B, GC=F, ^GSPC, etc.)
-  if (symbolList.some(s => !/^[A-Za-z0-9.\-=^]+$/.test(s))) {
-    return res.status(400).json({ error: 'Invalid symbols format' });
+  const parsed = parseSymbols(req.query.symbols, {
+    max: 50,
+    validate: true,
+    tooManyMessage: 'Too many symbols',
+  });
+  if (parsed.error) {
+    return res.status(400).json({ error: parsed.error });
   }
-
-  if (symbolList.length > 50) {
-    return res.status(400).json({ error: 'Too many symbols' });
-  }
+  const { symbolList } = parsed;
 
   try {
     const url = `${YAHOO_URL}?symbols=${symbolList.join(',')}&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,regularMarketVolume,fiftyTwoWeekHigh,fiftyTwoWeekLow`;
@@ -28,10 +27,7 @@ export default async function handler(req, res) {
     );
 
     const fetchPromise = fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-        'Accept': 'application/json',
-      },
+      headers: YAHOO_HEADERS,
     }).then(async response => {
       if (!response.ok) {
         throw new Error(`Yahoo Finance API returned ${response.status}: ${response.statusText}`);
@@ -58,8 +54,7 @@ export default async function handler(req, res) {
         fiftyTwoWeekLow: q.fiftyTwoWeekLow ?? null,
       }));
 
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+    setStockResponseHeaders(res);
     return res.status(200).json(stocks);
   } catch (err) {
     if (err.name === 'TimeoutError' || err.message === 'Request timeout') {

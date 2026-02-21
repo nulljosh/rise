@@ -1,15 +1,11 @@
 // 100% FREE stock API using Yahoo Finance Chart API (no key needed)
 // Fetches per-symbol with query1/query2 fallback and per-symbol timeout
+import { parseSymbols, setStockResponseHeaders, YAHOO_HEADERS } from './stocks-shared.js';
 
 const YAHOO_URLS = [
   'https://query1.finance.yahoo.com',
   'https://query2.finance.yahoo.com',
 ];
-
-const HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-  'Accept': 'application/json',
-};
 
 async function fetchSymbol(symbol) {
   for (const base of YAHOO_URLS) {
@@ -18,7 +14,7 @@ async function fetchSymbol(symbol) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-      const response = await fetch(url, { signal: controller.signal, headers: HEADERS });
+      const response = await fetch(url, { signal: controller.signal, headers: YAHOO_HEADERS });
       clearTimeout(timeoutId);
 
       if (!response.ok) {
@@ -60,12 +56,11 @@ async function fetchSymbol(symbol) {
 }
 
 export default async function handler(req, res) {
-  const raw = req.query.symbols || 'AAPL,MSFT,GOOGL,AMZN,META,TSLA,NVDA';
-  const symbolList = raw.split(',').map(s => s.trim()).filter(Boolean);
-
-  if (symbolList.length > 100) {
-    return res.status(400).json({ error: 'Too many symbols (max 100)' });
+  const parsed = parseSymbols(req.query.symbols, { max: 100, validate: false });
+  if (parsed.error) {
+    return res.status(400).json({ error: parsed.error });
   }
+  const { symbolList } = parsed;
 
   try {
     const results = await Promise.all(symbolList.map(fetchSymbol));
@@ -75,8 +70,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'No valid stock data received' });
     }
 
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+    setStockResponseHeaders(res);
     return res.status(200).json(stocks);
   } catch (err) {
     console.error('stocks-free handler error:', err);
