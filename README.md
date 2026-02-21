@@ -24,6 +24,10 @@ Fast financial terminal with live markets, prediction signals, and a paper-tradi
 - Prediction markets projected onto geographic anchors (city/team/politics keyword inference)
 - Global feed pulses: geopolitical events
 
+Note:
+- Only predictions with a clear geographic anchor are plotted on the map.
+- Non-geographic markets are intentionally hidden from map rendering for now.
+
 Local dev fallback:
 - In dev, map/event calls can use `VITE_API_BASE_URL`
 - If unset, dev defaults to `https://rise-production.vercel.app` for JSON-safe API responses

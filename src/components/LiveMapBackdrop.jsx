@@ -41,13 +41,7 @@ function inferMarketPoint(question, i, center) {
   for (const k of GEO_KEYWORDS) {
     if (k.re.test(question || '')) return { lat: k.lat, lon: k.lon, label: k.label };
   }
-  // Fallback: cluster unresolved markets around current center
-  const offsets = [
-    { lat: 0.18, lon: 0.00 }, { lat: -0.14, lon: 0.16 }, { lat: 0.08, lon: -0.20 },
-    { lat: -0.12, lon: -0.14 }, { lat: 0.20, lon: 0.18 },
-  ];
-  const o = offsets[i % offsets.length];
-  return { lat: center.lat + o.lat, lon: center.lon + o.lon, label: 'Near you' };
+  return null;
 }
 
 export default function LiveMapBackdrop({ dark }) {
@@ -301,6 +295,7 @@ export default function LiveMapBackdrop({ dark }) {
 
         payload.markets.forEach((m, i) => {
           const p = inferMarketPoint(m.question, i, center);
+          if (!p) return; // Only show markets with a confident geographic anchor.
           const prob = typeof m.probability === 'number' ? m.probability : 0.5;
           const conf = Math.max(prob, 1 - prob);
           const size = conf > 0.9 ? 12 : conf > 0.75 ? 10 : 8;
