@@ -188,6 +188,20 @@ export default function App() {
   const [showPmEdges, setShowPmEdges] = useState(true);
   const lastPmBetRef = useRef({}); // { marketId: timestamp }
 
+  // Broker state
+  const DEFAULT_BROKER_CONFIG = { broker: 'ctrader', clientId: '', clientSecret: '', refreshToken: '', accountId: '', webhookUrl: '', accessToken: '' };
+  const [brokerConfig, setBrokerConfig] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('rise_broker_config')) || DEFAULT_BROKER_CONFIG; }
+    catch { return DEFAULT_BROKER_CONFIG; }
+  });
+  const [brokerConnected, setBrokerConnected] = useState(false);
+  const [signalLog, setSignalLog] = useState([]);
+  const [autoSend, setAutoSend] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('rise_broker_autosend')) || false; }
+    catch { return false; }
+  });
+  const brokerRef = useRef(null);
+
   // Milestone state management
   const [currentMilestone, setCurrentMilestone] = useState(1e9); // Start at $1B
   const [nextMilestone, setNextMilestone] = useState(null);
