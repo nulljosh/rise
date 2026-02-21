@@ -5,6 +5,12 @@
   "installCommand": "npm install",
   "framework": "vite",
   "public": true,
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/gateway?path=:path*"
+    }
+  ],
   "crons": [
     {
       "path": "/api/cron",

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import handler from './positions.js';
+import handler from '../../server/api/broker/positions.js';
 
 function makeReqRes(query = {}) {
   const req = { method: 'GET', query };

@@ -1,6 +1,1 @@
-**/*.test.js
-**/*.test.ts
-**/*.spec.js
-**/*.spec.ts
-tests/
-__tests__/
+api/**/*.test.js

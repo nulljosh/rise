@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import handler from './signal.js';
+import handler from '../../server/api/broker/signal.js';
 
 function makeReqRes(body = {}) {
   const req = { method: 'POST', body };

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import handler from '../../api/stocks-free.js';
+import handler from '../../server/api/stocks-free.js';
 
 // Reset + reassign every test so no mock queue leaks between tests
 beforeEach(() => {

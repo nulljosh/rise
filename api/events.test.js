@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import handler from './events.js';
+import handler from '../server/api/events.js';
 
 function makeReqRes(query = {}) {
   const req = { method: 'GET', query };
@@ -61,7 +61,7 @@ describe('api/events handler', () => {
 
   it('returns 502 when GDELT fails', async () => {
     vi.resetModules();
-    const { default: freshHandler } = await import('./events.js');
+    const { default: freshHandler } = await import('../server/api/events.js');
     global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
     const { req, res } = makeReqRes();

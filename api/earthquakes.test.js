@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import handler from './earthquakes.js';
+import handler from '../server/api/earthquakes.js';
 
 function makeReqRes(query = {}) {
   const req = { method: 'GET', query };
@@ -62,7 +62,7 @@ describe('api/earthquakes handler', () => {
 
   it('returns 502 when USGS fetch fails', async () => {
     vi.resetModules();
-    const { default: freshHandler } = await import('./earthquakes.js');
+    const { default: freshHandler } = await import('../server/api/earthquakes.js');
     global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
     const { req, res } = makeReqRes();

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import handler from './incidents.js';
+import handler from '../server/api/incidents.js';
 
 function makeReqRes(query = {}) {
   const req = { method: 'GET', query };
@@ -78,7 +78,7 @@ describe('api/incidents handler', () => {
 
   it('returns empty incidents when Overpass fails', async () => {
     vi.resetModules();
-    const { default: freshHandler } = await import('./incidents.js');
+    const { default: freshHandler } = await import('../server/api/incidents.js');
     global.fetch = vi.fn().mockRejectedValue(new Error('Down'));
 
     const { req, res } = makeReqRes({ lat: '49.28', lon: '-123.12' });

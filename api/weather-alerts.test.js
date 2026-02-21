@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import handler from './weather-alerts.js';
+import handler from '../server/api/weather-alerts.js';
 
 function makeReqRes(query = {}) {
   const req = { method: 'GET', query };
@@ -77,7 +77,7 @@ describe('api/weather-alerts handler', () => {
 
   it('handles NOAA failure and returns Open-Meteo severe alert', async () => {
     vi.resetModules();
-    const { default: freshHandler } = await import('./weather-alerts.js');
+    const { default: freshHandler } = await import('../server/api/weather-alerts.js');
 
     global.fetch = vi.fn(url => {
       if (url.includes('weather.gov')) return Promise.reject(new Error('NOAA down'));

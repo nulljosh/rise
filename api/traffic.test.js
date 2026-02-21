@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vitest';
-import handler from './traffic.js';
+import handler from '../server/api/traffic.js';
 
 function makeReqRes(query = {}) {
   const req = { method: 'GET', query };

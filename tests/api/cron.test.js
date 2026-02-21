@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import handler from '../../api/cron.js';
+import handler from '../../server/api/cron.js';
 import { put } from '@vercel/blob';
 
 // Mock Vercel Blob

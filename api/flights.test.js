@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import handler from './flights.js';
+import handler from '../server/api/flights.js';
 
 const mockOpenSkyResponse = {
   time: 1708000000,
@@ -93,7 +93,7 @@ describe('api/flights handler', () => {
   it('returns 502 when OpenSky fails', async () => {
     // Reload handler module to get a fresh cache (avoids stale cache from prior tests)
     vi.resetModules();
-    const { default: freshHandler } = await import('./flights.js');
+    const { default: freshHandler } = await import('../server/api/flights.js');
     global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
     const { req, res } = makeReqRes({ lamin: '47', lomin: '-126', lamax: '51', lomax: '-120' });
