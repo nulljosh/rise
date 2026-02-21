@@ -1,24 +1,20 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export const WORLD_CITIES = [
-  { id: 'nyc',     label: 'NYC',     lat: 40.7128,  lon: -74.0060,  name: 'New York'    },
-  { id: 'london',  label: 'London',  lat: 51.5074,  lon: -0.1278,   name: 'London'      },
-  { id: 'tokyo',   label: 'Tokyo',   lat: 35.6762,  lon: 139.6503,  name: 'Tokyo'       },
-  { id: 'paris',   label: 'Paris',   lat: 48.8566,  lon: 2.3522,    name: 'Paris'       },
-  { id: 'dubai',   label: 'Dubai',   lat: 25.2048,  lon: 55.2708,   name: 'Dubai'       },
-  { id: 'sydney',  label: 'Sydney',  lat: -33.8688, lon: 151.2093,  name: 'Sydney'      },
+  { id: 'nyc',    label: 'NYC',    lat: 40.7128,  lon: -74.0060,  name: 'New York' },
+  { id: 'london', label: 'London', lat: 51.5074,  lon: -0.1278,   name: 'London'   },
+  { id: 'tokyo',  label: 'Tokyo',  lat: 35.6762,  lon: 139.6503,  name: 'Tokyo'    },
+  { id: 'paris',  label: 'Paris',  lat: 48.8566,  lon: 2.3522,    name: 'Paris'    },
+  { id: 'dubai',  label: 'Dubai',  lat: 25.2048,  lon: 55.2708,   name: 'Dubai'    },
+  { id: 'sydney', label: 'Sydney', lat: -33.8688, lon: 151.2093,  name: 'Sydney'   },
 ];
 
-const FLIGHT_REFRESH = 15_000;  // 15s — matches OpenSky rate limit
-const TRAFFIC_REFRESH = 60_000; // 60s
+const FLIGHT_REFRESH    = 15_000;
+const TRAFFIC_REFRESH   = 60_000;
+const SITUATION_REFRESH = 5 * 60_000;
 
 function bboxFromCenter(lat, lon, deg = 2) {
-  return {
-    lamin: lat - deg,
-    lomin: lon - deg,
-    lamax: lat + deg,
-    lomax: lon + deg,
-  };
+  return { lamin: lat - deg, lomin: lon - deg, lamax: lat + deg, lomax: lon + deg };
 }
 
 async function fetchWithTimeout(url, ms = 8000) {
@@ -36,50 +32,39 @@ async function fetchWithTimeout(url, ms = 8000) {
 }
 
 export function useSituation() {
-  // User location (from ip-api.com)
-  const [userLocation, setUserLocation] = useState(null);  // { lat, lon, city }
+  const [userLocation, setUserLocation] = useState(null);
   const [locationError, setLocationError] = useState(null);
-
-  // Selected city (null = user location)
   const [selectedCity, setSelectedCity] = useState(null);
 
-  // Flights
   const [flights, setFlights] = useState([]);
   const [flightsLoading, setFlightsLoading] = useState(false);
   const [flightsError, setFlightsError] = useState(null);
 
-  // Traffic
   const [traffic, setTraffic] = useState(null);
   const [trafficLoading, setTrafficLoading] = useState(false);
   const [trafficError, setTrafficError] = useState(null);
 
-  const flightTimer = useRef(null);
+  const [incidents, setIncidents] = useState([]);
+  const [earthquakes, setEarthquakes] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [weatherAlerts, setWeatherAlerts] = useState([]);
 
-  // Derive active center from selected city or user location
   const activeCenter = selectedCity
     ? { lat: selectedCity.lat, lon: selectedCity.lon, label: selectedCity.label }
     : userLocation
       ? { lat: userLocation.lat, lon: userLocation.lon, label: userLocation.city }
       : { lat: WORLD_CITIES[0].lat, lon: WORLD_CITIES[0].lon, label: WORLD_CITIES[0].label };
 
-  // Fetch user geolocation via ip-api.com (no auth, 45 req/min)
   useEffect(() => {
     if (process.env.NODE_ENV === 'test') return;
     fetchWithTimeout('http://ip-api.com/json/?fields=lat,lon,city,status')
       .then(data => {
-        if (data.status === 'success') {
-          setUserLocation({ lat: data.lat, lon: data.lon, city: data.city });
-        } else {
-          setLocationError('Geolocation unavailable');
-        }
+        if (data.status === 'success') setUserLocation({ lat: data.lat, lon: data.lon, city: data.city });
+        else setLocationError('Geolocation unavailable');
       })
-      .catch(err => {
-        setLocationError(err.message);
-        // Fallback to first world city — handled via activeCenter default above
-      });
+      .catch(err => setLocationError(err.message));
   }, []);
 
-  // Fetch flights for active center
   const fetchFlights = useCallback(async () => {
     setFlightsLoading(true);
     setFlightsError(null);
@@ -96,14 +81,11 @@ export function useSituation() {
     }
   }, [activeCenter.lat, activeCenter.lon]);
 
-  // Fetch traffic for active center
   const fetchTraffic = useCallback(async () => {
     setTrafficLoading(true);
     setTrafficError(null);
     try {
-      const data = await fetchWithTimeout(
-        `/api/traffic?lat=${activeCenter.lat}&lon=${activeCenter.lon}`
-      );
+      const data = await fetchWithTimeout(`/api/traffic?lat=${activeCenter.lat}&lon=${activeCenter.lon}`);
       setTraffic(data);
     } catch (err) {
       setTrafficError(err.message);
@@ -112,32 +94,65 @@ export function useSituation() {
     }
   }, [activeCenter.lat, activeCenter.lon]);
 
-  // Set up polling for flights + traffic
+  const fetchIncidents = useCallback(async () => {
+    try {
+      const data = await fetchWithTimeout(`/api/incidents?lat=${activeCenter.lat}&lon=${activeCenter.lon}`);
+      setIncidents(data.incidents ?? []);
+    } catch { /* non-critical */ }
+  }, [activeCenter.lat, activeCenter.lon]);
+
+  const fetchEarthquakes = useCallback(async () => {
+    try {
+      const data = await fetchWithTimeout('/api/earthquakes');
+      setEarthquakes(data.earthquakes ?? []);
+    } catch { /* non-critical */ }
+  }, []);
+
+  const fetchEvents = useCallback(async () => {
+    try {
+      const data = await fetchWithTimeout('/api/events');
+      setEvents(data.events ?? []);
+    } catch { /* non-critical */ }
+  }, []);
+
+  const fetchWeatherAlerts = useCallback(async () => {
+    try {
+      const data = await fetchWithTimeout(`/api/weather-alerts?lat=${activeCenter.lat}&lon=${activeCenter.lon}`);
+      setWeatherAlerts(data.alerts ?? []);
+    } catch { /* non-critical */ }
+  }, [activeCenter.lat, activeCenter.lon]);
+
   useEffect(() => {
     fetchFlights();
     fetchTraffic();
-
-    const flightInterval = setInterval(fetchFlights, FLIGHT_REFRESH);
-    const trafficInterval = setInterval(fetchTraffic, TRAFFIC_REFRESH);
-    return () => {
-      clearInterval(flightInterval);
-      clearInterval(trafficInterval);
-    };
+    const fi = setInterval(fetchFlights, FLIGHT_REFRESH);
+    const ti = setInterval(fetchTraffic, TRAFFIC_REFRESH);
+    return () => { clearInterval(fi); clearInterval(ti); };
   }, [fetchFlights, fetchTraffic]);
 
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'test') return;
+    fetchIncidents();
+    fetchEarthquakes();
+    fetchEvents();
+    fetchWeatherAlerts();
+    const si = setInterval(() => {
+      fetchIncidents();
+      fetchEarthquakes();
+      fetchEvents();
+      fetchWeatherAlerts();
+    }, SITUATION_REFRESH);
+    return () => clearInterval(si);
+  }, [fetchIncidents, fetchEarthquakes, fetchEvents, fetchWeatherAlerts]);
+
   return {
-    userLocation,
-    locationError,
-    selectedCity,
-    setSelectedCity,
+    userLocation, locationError,
+    selectedCity, setSelectedCity,
     activeCenter,
     worldCities: WORLD_CITIES,
-    flights,
-    flightsLoading,
-    flightsError,
-    traffic,
-    trafficLoading,
-    trafficError,
+    flights, flightsLoading, flightsError,
+    traffic, trafficLoading, trafficError,
+    incidents, earthquakes, events, weatherAlerts,
     refetchFlights: fetchFlights,
     refetchTraffic: fetchTraffic,
   };
