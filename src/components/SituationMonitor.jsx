@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSituation } from '../hooks/useSituation';
 import { Card, BlinkingDot } from './ui';
 
@@ -17,10 +17,19 @@ function CongestionBar({ value, t, font }) {
   );
 }
 
-export default function SituationMonitor({ dark, t, font }) {
+export default function SituationMonitor({
+  dark, t, font,
+  sim = null,
+  pmEdges = [],
+  lastPmBetMap = {},
+  trades = [],
+  pmExits = 0,
+}) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
+  const [showPmEdges, setShowPmEdges] = useState(true);
+  const [showTrades, setShowTrades] = useState(false);
 
   const {
     activeCenter, selectedCity, setSelectedCity,
@@ -103,6 +112,7 @@ export default function SituationMonitor({ dark, t, font }) {
 
   const nearbyFlights = flights.slice(0, 6);
   const congestion = traffic?.flow?.congestion ?? null;
+  const tradeExits = trades.filter(t => t?.pnl).length;
   const cityList = userLocation
     ? [{ id: 'me', label: userLocation.city, lat: userLocation.lat, lon: userLocation.lon }, ...worldCities]
     : worldCities;
@@ -147,6 +157,143 @@ export default function SituationMonitor({ dark, t, font }) {
             );
           })}
         </div>
+      </div>
+
+      {/* Macro rows */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+        <div style={{ fontSize: 11, color: t.textSecondary, display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ color: t.red }}>AI Bubble</span>
+          <span>Mag7 = 35% S&P 500</span>
+        </div>
+        <div style={{ fontSize: 11, color: t.textSecondary, display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ color: t.yellow }}>US Debt</span>
+          <span>$36T / 120% GDP</span>
+        </div>
+        <div style={{ fontSize: 11, color: t.textSecondary, display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ color: t.cyan }}>BTC ETF</span>
+          <span>+$40B inflow</span>
+        </div>
+        <div style={{ fontSize: 11, color: t.textSecondary, display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ color: t.green }}>Gold CB</span>
+          <span>+1,037t reserves</span>
+        </div>
+      </div>
+
+      {sim && (
+        <>
+          <div style={{ height: 1, background: t.border, marginBottom: 12 }} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', color: t.textTertiary, marginBottom: 3 }}>EQUITY</div>
+              <div style={{ fontSize: 14, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{sim.equity}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', color: t.textTertiary, marginBottom: 3 }}>P&amp;L</div>
+              <div style={{ fontSize: 14, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: sim.pnlPositive ? t.green : t.red }}>
+                {sim.pnl}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', color: t.textTertiary, marginBottom: 3 }}>WIN RATE</div>
+              <div style={{ fontSize: 14, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{sim.winRate}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', color: t.textTertiary, marginBottom: 3 }}>TRADES</div>
+              <div style={{ fontSize: 14, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{sim.trades}</div>
+            </div>
+            {sim.position && (
+              <div style={{ gridColumn: '1 / -1' }}>
+                <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', color: t.textTertiary, marginBottom: 3 }}>POSITION</div>
+                <div style={{ fontSize: 12, fontWeight: 600 }}>
+                  <span style={{ color: sim.position.color }}>{sim.position.sym}</span>
+                  <span style={{ color: t.textSecondary, marginLeft: 6 }}>
+                    ${sim.position.entry} &middot; {sim.position.unrealized} unrealized
+                  </span>
+                </div>
+              </div>
+            )}
+            <div>
+              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', color: t.textTertiary, marginBottom: 3 }}>RUNTIME</div>
+              <div style={{ fontSize: 14, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{sim.runtime}</div>
+            </div>
+            {sim.allTime && (
+              <div>
+                <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', color: t.textTertiary, marginBottom: 3 }}>ALL-TIME</div>
+                <div style={{ fontSize: 14, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{sim.allTime}</div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* PM edges */}
+      <div style={{ background: t.surface, borderRadius: 10, overflow: 'hidden', marginBottom: 10 }}>
+        <button
+          onClick={() => setShowPmEdges(!showPmEdges)}
+          style={{ width: '100%', padding: '10px 12px', background: 'transparent', border: 'none', display: 'flex', justifyContent: 'space-between', fontFamily: font, fontSize: 11, color: t.textTertiary, cursor: 'pointer' }}
+        >
+          <span>polymarket edges ({pmEdges.length})</span>
+          <span>{showPmEdges ? '−' : '+'}</span>
+        </button>
+        {showPmEdges && (
+          <div style={{ padding: '0 12px 12px', maxHeight: 180, overflowY: 'auto' }}>
+            {pmEdges.length === 0 ? (
+              <div style={{ color: t.textTertiary, fontSize: 11, textAlign: 'center', padding: 8 }}>no edges &gt;85%</div>
+            ) : pmEdges.map((m, i) => {
+              const isYes = m.probability >= 0.85;
+              const dispProb = isYes ? m.probability : 1 - m.probability;
+              const betTs = lastPmBetMap[m.id || m.slug];
+              const msSinceBet = betTs ? Date.now() - betTs : null;
+              return (
+                <div key={m.id || i} style={{ display: 'flex', flexDirection: 'column', gap: 3, padding: '6px 0', borderBottom: `1px solid ${t.border}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6 }}>
+                    <span style={{ fontSize: 10, color: t.text, flex: 1, lineHeight: 1.3 }}>{m.question?.length > 60 ? `${m.question.slice(0, 60)}...` : m.question}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: isYes ? t.green : t.red, whiteSpace: 'nowrap' }}>
+                      {isYes ? 'YES' : 'NO'} {(dispProb * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <div style={{ flex: 1, height: 3, background: t.border, borderRadius: 2 }}>
+                      <div style={{ width: `${dispProb * 100}%`, height: '100%', background: isYes ? t.green : t.red, borderRadius: 2 }} />
+                    </div>
+                    <span style={{ fontSize: 9, color: t.textTertiary }}>Vol ${((m.volume24h || 0) / 1000).toFixed(0)}K</span>
+                    {betTs && <span style={{ fontSize: 9, color: t.cyan }}>bet {msSinceBet < 60000 ? `${Math.round(msSinceBet / 1000)}s` : `${Math.round(msSinceBet / 60000)}m`} ago</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Trade log */}
+      <div style={{ background: t.surface, borderRadius: 10, overflow: 'hidden', marginBottom: 12 }}>
+        <button
+          onClick={() => setShowTrades(!showTrades)}
+          style={{ width: '100%', padding: '10px 12px', background: 'transparent', border: 'none', display: 'flex', justifyContent: 'space-between', fontFamily: font, fontSize: 11, color: t.textTertiary, cursor: 'pointer' }}
+        >
+          <span>trades ({tradeExits}) &middot; stocks: {tradeExits - pmExits} &middot; PM: {pmExits}</span>
+          <span>{showTrades ? '−' : '+'}</span>
+        </button>
+        {showTrades && (
+          <div style={{ padding: '0 12px 12px', maxHeight: 160, overflow: 'auto' }}>
+            {trades.length === 0 ? (
+              <div style={{ color: t.textTertiary, fontSize: 12, textAlign: 'center', padding: 8 }}>waiting...</div>
+            ) : (
+              [...trades].reverse().slice(0, 20).map((tr, i) => {
+                const pnl = tr.pnl ? parseFloat(tr.pnl) : null;
+                return (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '4px 0', borderBottom: `1px solid ${t.border}` }}>
+                    <span style={{ color: tr.type === 'BUY' ? t.accent : tr.type?.startsWith('PM_') ? t.cyan : pnl >= 0 ? t.green : t.red }}>
+                      {tr.type} {tr.sym}
+                    </span>
+                    {pnl != null && <span style={{ color: pnl >= 0 ? t.green : t.red }}>{pnl >= 0 ? '+' : ''}{tr.pnl}</span>}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
       </div>
 
       {/* Map */}
