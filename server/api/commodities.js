@@ -1,7 +1,9 @@
+import { applyCors } from './_cors.js';
 // Multi-source commodity prices API
 // Uses Yahoo Finance chart endpoint (more reliable than quote endpoint)
 
 export default async function handler(req, res) {
+  applyCors(req, res);
   const results = {};
 
   const symbols = {
@@ -90,8 +92,7 @@ export default async function handler(req, res) {
       console.warn(`Successfully fetched ${Object.keys(results).length}/${Object.keys(symbols).length} commodities (${failedCount} failed)`);
     }
 
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
+        res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
     res.status(200).json(results);
   } catch (error) {
     console.error('Commodities API error:', error);

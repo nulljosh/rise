@@ -1,7 +1,9 @@
+import { applyCors } from './_cors.js';
 // OpenWeatherMap API proxy
 const WEATHER_API_BASE = 'https://api.openweathermap.org/data/2.5';
 
 export default async function handler(req, res) {
+  applyCors(req, res);
   const apiKey = process.env.OPENWEATHER_API_KEY;
 
   if (!apiKey) {
@@ -31,8 +33,7 @@ export default async function handler(req, res) {
       throw new Error(data.message || 'Weather API error');
     }
 
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cache-Control', 's-maxage=600'); // Cache for 10 minutes
+        res.setHeader('Cache-Control', 's-maxage=600'); // Cache for 10 minutes
     res.status(200).json({
       temp: Math.round(data.main?.temp || 0),
       feels_like: Math.round(data.main?.feels_like || 0),

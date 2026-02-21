@@ -1,8 +1,9 @@
+import { applyCors } from './_cors.js';
 import { list } from '@vercel/blob';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
+  applyCors(req, res);
+    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
 
   try {
     // Find the blob by prefix (most recent cache)

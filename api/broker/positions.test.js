@@ -42,8 +42,8 @@ describe('api/broker/positions handler', () => {
   });
 
   it('returns mapped positions and account summary', async () => {
-    process.env.ALPACA_API_KEY = 'test-key';
-    process.env.ALPACA_API_SECRET = 'test-secret';
+    process.env.ALPACA_API_KEY = 'mock-api-key';
+    process.env.ALPACA_API_SECRET = 'mock-credential';
     process.env.ALPACA_BASE_URL = 'https://paper-api.alpaca.markets';
 
     global.fetch = vi.fn(url => {
@@ -96,7 +96,7 @@ describe('api/broker/positions handler', () => {
   });
 
   it('returns empty positions when positions payload is not an array', async () => {
-    process.env.ALPACA_API_KEY = 'test-key';
+    process.env.ALPACA_API_KEY = 'mock-api-key';
 
     global.fetch = vi.fn(url => {
       if (url.includes('/v2/positions')) return Promise.resolve({ json: () => Promise.resolve({ error: 'bad' }) });
@@ -112,7 +112,7 @@ describe('api/broker/positions handler', () => {
   });
 
   it('returns 500 when fetch throws', async () => {
-    process.env.ALPACA_API_KEY = 'test-key';
+    process.env.ALPACA_API_KEY = 'mock-api-key';
     global.fetch = vi.fn().mockRejectedValue(new Error('alpaca down'));
 
     const { req, res } = makeReqRes();

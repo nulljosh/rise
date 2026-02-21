@@ -1,3 +1,4 @@
+import { applyCors } from './_cors.js';
 export const DEFAULT_SYMBOLS = 'AAPL,MSFT,GOOGL,AMZN,META,TSLA,NVDA';
 
 export const YAHOO_HEADERS = {
@@ -25,7 +26,7 @@ export function parseSymbols(raw, { max = 50, validate = false, tooManyMessage }
   return { symbolList };
 }
 
-export function setStockResponseHeaders(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+export function setStockResponseHeaders(req, res) {
+  applyCors(req, res);
   res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
 }

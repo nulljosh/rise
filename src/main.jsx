@@ -19,5 +19,19 @@ try {
   );
 } catch (err) {
   console.error('Failed to render app:', err);
-  document.body.innerHTML = `<div style="padding:40px;background:#1a1a1a;color:#ff6b6b;font-family:monospace"><h1>Render Error</h1><pre>${err.stack}</pre></div>`;
+
+  const wrapper = document.createElement('div');
+  wrapper.style.padding = '40px';
+  wrapper.style.background = '#1a1a1a';
+  wrapper.style.color = '#ff6b6b';
+  wrapper.style.fontFamily = 'monospace';
+
+  const title = document.createElement('h1');
+  title.textContent = 'Render Error';
+
+  const details = document.createElement('pre');
+  details.textContent = err?.stack || err?.message || 'Unknown render error';
+
+  wrapper.append(title, details);
+  document.body.replaceChildren(wrapper);
 }

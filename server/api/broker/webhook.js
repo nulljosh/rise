@@ -1,3 +1,4 @@
+import { applyCors } from '../_cors.js';
 // TradingView alert → Alpaca paper order
 // POST { ticker, action, price?, qty? }
 const BASE = process.env.ALPACA_BASE_URL || 'https://paper-api.alpaca.markets';
@@ -11,7 +12,7 @@ function alpacaHeaders() {
 }
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  applyCors(req, res, { methods: 'POST, OPTIONS' });
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 

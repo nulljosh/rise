@@ -56,7 +56,7 @@ describe('Markets API', () => {
     expect(jsonData).toBeInstanceOf(Array);
     expect(jsonData.length).toBe(1);
     expect(jsonData[0].id).toBe('1');
-    expect(mockRes.setHeader).toHaveBeenCalledWith('Access-Control-Allow-Origin', '*');
+    expect(mockRes.setHeader).toHaveBeenCalledWith('Access-Control-Allow-Origin', 'http://localhost:5173');
   });
 
   it('should handle custom query parameters', async () => {

@@ -87,7 +87,7 @@ export default async function handler(req, res) {
   const cacheKey = symbolList.join(',');
   const cached = getCached(cacheKey, CACHE_TTL_MS);
   if (cached) {
-    setStockResponseHeaders(res);
+    setStockResponseHeaders(req, res);
     res.setHeader('X-Rise-Data-Status', 'cache');
     return res.status(200).json(cached);
   }
@@ -111,13 +111,13 @@ export default async function handler(req, res) {
       cache.set(cacheKey, { ts: Date.now(), data: stocks });
     }
 
-    setStockResponseHeaders(res);
+    setStockResponseHeaders(req, res);
     res.setHeader('X-Rise-Data-Status', 'live');
     return res.status(200).json(stocks);
   } catch (err) {
     const staleCached = getCached(cacheKey, STALE_IF_ERROR_MS);
     if (staleCached) {
-      setStockResponseHeaders(res);
+      setStockResponseHeaders(req, res);
       res.setHeader('X-Rise-Data-Status', 'stale');
       return res.status(200).json(staleCached);
     }

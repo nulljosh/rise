@@ -56,7 +56,7 @@ describe('Latest API', () => {
     
     expect(res.setHeader).toHaveBeenCalledWith(
       'Access-Control-Allow-Origin',
-      '*'
+      'http://localhost:5173'
     );
   });
 

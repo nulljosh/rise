@@ -1,7 +1,9 @@
+import { applyCors } from './_cors.js';
 // API endpoint to validate Polymarket links
 // Checks if a Polymarket event page exists (returns 404 or not)
 
 export default async function handler(req, res) {
+  applyCors(req, res);
   const { slug } = req.query;
 
   // Validate slug parameter
@@ -37,8 +39,7 @@ export default async function handler(req, res) {
     const isValid = response.ok; // 200-299 status codes
     const statusCode = response.status;
 
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cache-Control', 's-maxage=300'); // Cache for 5 minutes
+        res.setHeader('Cache-Control', 's-maxage=300'); // Cache for 5 minutes
     res.status(200).json({
       slug,
       isValid,

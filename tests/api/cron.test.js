@@ -24,7 +24,7 @@ describe('Cron API', () => {
   beforeEach(() => {
     req = {
       headers: {
-        authorization: `Bearer ${process.env.CRON_SECRET || 'test-secret'}`,
+        authorization: `Bearer ${process.env.CRON_SECRET || 'mock-credential'}`,
       },
     };
 
@@ -45,11 +45,11 @@ describe('Cron API', () => {
     });
 
     // Set CRON_SECRET for testing
-    process.env.CRON_SECRET = 'test-secret';
+    process.env.CRON_SECRET = 'mock-credential';
   });
 
   it('should reject unauthorized requests', async () => {
-    const badReq = { headers: { authorization: 'Bearer wrong-secret' } };
+    const badReq = { headers: { authorization: 'Bearer wrong-credential' } };
     await handler(badReq, res);
     
     expect(res.status).toHaveBeenCalledWith(401);
@@ -57,7 +57,7 @@ describe('Cron API', () => {
   });
 
   it('should require Bearer token format', async () => {
-    const badReq = { headers: { authorization: 'test-secret' } }; // Missing "Bearer"
+    const badReq = { headers: { authorization: 'mock-credential' } }; // Missing "Bearer"
     await handler(badReq, res);
     
     expect(res.status).toHaveBeenCalledWith(401);
@@ -136,7 +136,7 @@ describe('Cron Error Handling', () => {
   beforeEach(() => {
     req = {
       headers: {
-        authorization: `Bearer ${process.env.CRON_SECRET || 'test-secret'}`,
+        authorization: `Bearer ${process.env.CRON_SECRET || 'mock-credential'}`,
       },
     };
 
@@ -154,7 +154,7 @@ describe('Cron Error Handling', () => {
       return res;
     });
 
-    process.env.CRON_SECRET = 'test-secret';
+    process.env.CRON_SECRET = 'mock-credential';
   });
 
   it('should handle errors gracefully', async () => {

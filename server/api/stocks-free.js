@@ -89,7 +89,7 @@ export default async function handler(req, res) {
 
   const freshCached = getCached(cacheKey, CACHE_TTL_MS);
   if (freshCached) {
-    setStockResponseHeaders(res);
+    setStockResponseHeaders(req, res);
     return res.status(200).json(freshCached);
   }
 
@@ -100,7 +100,7 @@ export default async function handler(req, res) {
     if (stocks.length === 0) {
       const staleCached = getCached(cacheKey, STALE_IF_ERROR_MS);
       if (staleCached) {
-        setStockResponseHeaders(res);
+        setStockResponseHeaders(req, res);
         return res.status(200).json(staleCached);
       }
       return res.status(500).json({ error: 'No valid stock data received' });
@@ -110,13 +110,13 @@ export default async function handler(req, res) {
       cache.set(cacheKey, { ts: Date.now(), data: stocks });
     }
 
-    setStockResponseHeaders(res);
+    setStockResponseHeaders(req, res);
     return res.status(200).json(stocks);
   } catch (err) {
     console.error('stocks-free handler error:', err);
     const staleCached = getCached(cacheKey, STALE_IF_ERROR_MS);
     if (staleCached) {
-      setStockResponseHeaders(res);
+      setStockResponseHeaders(req, res);
       return res.status(200).json(staleCached);
     }
     return res.status(500).json({ error: 'Failed to fetch stock data', details: err.message });

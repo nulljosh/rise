@@ -61,7 +61,7 @@ describe('Stocks API', () => {
     expect(jsonData.length).toBe(1);
     expect(jsonData[0].symbol).toBe('AAPL');
     expect(jsonData[0].price).toBe(150.25);
-    expect(mockRes.setHeader).toHaveBeenCalledWith('Access-Control-Allow-Origin', '*');
+    expect(mockRes.setHeader).toHaveBeenCalledWith('Access-Control-Allow-Origin', 'http://localhost:5173');
   });
 
   it('should handle custom symbols query parameter', async () => {

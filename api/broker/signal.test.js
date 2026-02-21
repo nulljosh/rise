@@ -54,8 +54,8 @@ describe('api/broker/signal handler', () => {
   });
 
   it('places an order successfully', async () => {
-    process.env.ALPACA_API_KEY = 'test-key';
-    process.env.ALPACA_API_SECRET = 'test-secret';
+    process.env.ALPACA_API_KEY = 'mock-api-key';
+    process.env.ALPACA_API_SECRET = 'mock-credential';
     process.env.ALPACA_BASE_URL = 'https://paper-api.alpaca.markets';
 
     global.fetch = vi.fn().mockResolvedValue({
@@ -84,8 +84,8 @@ describe('api/broker/signal handler', () => {
   });
 
   it('passes through alpaca API error status/message', async () => {
-    process.env.ALPACA_API_KEY = 'test-key';
-    process.env.ALPACA_API_SECRET = 'test-secret';
+    process.env.ALPACA_API_KEY = 'mock-api-key';
+    process.env.ALPACA_API_SECRET = 'mock-credential';
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
@@ -101,8 +101,8 @@ describe('api/broker/signal handler', () => {
   });
 
   it('returns 500 when request throws', async () => {
-    process.env.ALPACA_API_KEY = 'test-key';
-    process.env.ALPACA_API_SECRET = 'test-secret';
+    process.env.ALPACA_API_KEY = 'mock-api-key';
+    process.env.ALPACA_API_SECRET = 'mock-credential';
 
     global.fetch = vi.fn().mockRejectedValue(new Error('network down'));
 

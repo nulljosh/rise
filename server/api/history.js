@@ -1,5 +1,7 @@
+import { applyCors } from './_cors.js';
 // Vercel serverless proxy for Yahoo Finance historical data
 export default async function handler(req, res) {
+  applyCors(req, res);
   const symbol = req.query.symbol || 'AAPL';
   const range = req.query.range || '1y'; // 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, max
   const interval = req.query.interval || '1d'; // 1m, 5m, 15m, 1d, 1wk, 1mo
@@ -91,8 +93,7 @@ export default async function handler(req, res) {
       });
     }
 
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=7200'); // Cache for 1 hour
+        res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=7200'); // Cache for 1 hour
     res.status(200).json({
       symbol,
       currency: result.meta?.currency || 'USD',

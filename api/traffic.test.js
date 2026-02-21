@@ -65,8 +65,8 @@ describe('api/traffic handler', () => {
   });
 
   it('returns flow and incidents when both APIs succeed', async () => {
-    process.env.TOMTOM_API_KEY = 'test-tomtom-key';
-    process.env.HERE_API_KEY = 'test-here-key';
+    process.env.TOMTOM_API_KEY = 'mock-tomtom-key';
+    process.env.HERE_API_KEY = 'mock-here-key';
 
     global.fetch = vi.fn(url => {
       if (url.includes('tomtom.com')) return Promise.resolve({ ok: true, json: () => Promise.resolve(mockTomTomFlow) });
@@ -85,7 +85,7 @@ describe('api/traffic handler', () => {
   });
 
   it('classifies heavy congestion when speed ratio < 0.4', async () => {
-    process.env.TOMTOM_API_KEY = 'test-key';
+    process.env.TOMTOM_API_KEY = 'mock-api-key';
 
     global.fetch = vi.fn(url => {
       if (url.includes('tomtom.com')) return Promise.resolve({
@@ -103,7 +103,7 @@ describe('api/traffic handler', () => {
   });
 
   it('classifies moderate congestion when speed ratio 0.4-0.7', async () => {
-    process.env.TOMTOM_API_KEY = 'test-key';
+    process.env.TOMTOM_API_KEY = 'mock-api-key';
 
     global.fetch = vi.fn(url => {
       if (url.includes('tomtom.com')) return Promise.resolve({
@@ -196,7 +196,7 @@ describe('api/traffic handler', () => {
   });
 
   it('accepts bbox params instead of lat/lon', async () => {
-    process.env.TOMTOM_API_KEY = 'test-key';
+    process.env.TOMTOM_API_KEY = 'mock-api-key';
     global.fetch = vi.fn(() => Promise.resolve({
       ok: true,
       json: () => Promise.resolve(mockTomTomFlow),
@@ -217,7 +217,7 @@ describe('api/traffic handler', () => {
   });
 
   it('handles TomTom API failure gracefully without crashing', async () => {
-    process.env.TOMTOM_API_KEY = 'test-key';
+    process.env.TOMTOM_API_KEY = 'mock-api-key';
     global.fetch = vi.fn(url => {
       if (url.includes('tomtom.com')) return Promise.reject(new Error('TomTom down'));
       return Promise.resolve({ ok: true, json: () => Promise.resolve({ results: [] }) });

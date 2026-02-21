@@ -1,4 +1,6 @@
+import { applyCors } from './_cors.js';
 export default async function handler(req, res) {
+  applyCors(req, res);
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
@@ -45,8 +47,7 @@ export default async function handler(req, res) {
       throw new Error('No valid price data received from API');
     }
 
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=120');
+        res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=120');
     res.status(200).json(prices);
   } catch (error) {
     console.error('Prices API error:', error);

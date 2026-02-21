@@ -1,10 +1,12 @@
+import { applyCors } from './_cors.js';
 import { kv } from '@vercel/kv';
 import crypto from 'crypto';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Customer-Id');
+  applyCors(req, res, {
+    methods: 'GET, POST, OPTIONS',
+    headers: 'Content-Type, X-Customer-Id',
+  });
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 

@@ -1,3 +1,4 @@
+import { applyCors } from './_cors.js';
 const POLYMARKET_URL = 'https://gamma-api.polymarket.com/markets';
 const REQUEST_TIMEOUT_MS = 10000;
 const MAX_ATTEMPTS = process.env.NODE_ENV === 'test' ? 1 : 3;
@@ -18,6 +19,7 @@ function getCached(cacheKey, maxAgeMs) {
 }
 
 export default async function handler(req, res) {
+  applyCors(req, res);
   // Validate query parameters
   const limit = Math.min(parseInt(req.query.limit) || 50, 100); // Max 100
   const closed = req.query.closed === 'true';
@@ -36,8 +38,7 @@ export default async function handler(req, res) {
   const cacheKey = `${closed}:${limit}:${order}:${ascending}`;
   const freshCached = getCached(cacheKey, CACHE_TTL_MS);
   if (freshCached) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
+        res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
     res.setHeader('X-Rise-Data-Status', 'cache');
     return res.status(200).json(freshCached);
   }
@@ -116,8 +117,7 @@ export default async function handler(req, res) {
       cache.set(cacheKey, { ts: Date.now(), data: validMarkets });
     }
 
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
+        res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
     res.setHeader('X-Rise-Data-Status', 'live');
     return res.status(200).json(validMarkets);
   } catch (error) {
@@ -125,8 +125,7 @@ export default async function handler(req, res) {
 
     const staleCached = getCached(cacheKey, STALE_IF_ERROR_MS);
     if (staleCached) {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
+            res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
       res.setHeader('X-Rise-Data-Status', 'stale');
       return res.status(200).json(staleCached);
     }
