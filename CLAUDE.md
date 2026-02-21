@@ -58,6 +58,17 @@ git push origin main
 
 If Vercel is connected to this repo with production branch `main`, pushing `main` triggers a production deployment.
 
+## Billing / Upgrade
+
+- Pricing modal offers `Free`, `Starter ($20)`, and `Pro ($50)`.
+- Checkout endpoint is `POST /api/stripe?action=checkout` with `{ priceId }`.
+- Allowed price IDs are controlled by:
+  - `STRIPE_PRICE_ID_STARTER`
+  - `STRIPE_PRICE_ID_PRO`
+  - `VITE_STRIPE_PRICE_ID_STARTER`
+  - `VITE_STRIPE_PRICE_ID_PRO`
+- Apple Pay is handled by Stripe Checkout on supported devices once domain verification is enabled in Stripe.
+
 ## Current Priorities
 
 - Keep simulator and monitor responsive

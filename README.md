@@ -44,6 +44,21 @@ npm run test:speed
 - `main` branch: production deploy (Vercel if repo-connected)
 - GitHub Pages workflow also runs on `main`
 
+## Pricing
+
+- `Free`: core dashboard + simulator
+- `Starter`: `$20/mo`
+- `Pro`: `$50/mo`
+
+Stripe price IDs expected by UI/API:
+
+- `VITE_STRIPE_PRICE_ID_STARTER`
+- `VITE_STRIPE_PRICE_ID_PRO`
+- `STRIPE_PRICE_ID_STARTER`
+- `STRIPE_PRICE_ID_PRO`
+
+Apple Pay note: Stripe Checkout can surface Apple Pay automatically on supported Apple devices after Stripe domain verification is configured.
+
 ## License
 
 MIT. Not financial advice.

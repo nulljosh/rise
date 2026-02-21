@@ -10,6 +10,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export default async function handler(req, res) {
   const { action, customerId } = req.query;
+  const allowedPriceIds = new Set(
+    [process.env.STRIPE_PRICE_ID_STARTER, process.env.STRIPE_PRICE_ID_PRO].filter(Boolean)
+  );
 
   // GET: subscription status
   if (req.method === 'GET' && action === 'status') {
@@ -40,6 +43,9 @@ export default async function handler(req, res) {
     try {
       const { priceId } = req.body;
       if (!priceId) return res.status(400).json({ error: 'Price ID required' });
+      if (allowedPriceIds.size > 0 && !allowedPriceIds.has(priceId)) {
+        return res.status(400).json({ error: 'Invalid price ID' });
+      }
       const baseUrl = process.env.VERCEL_URL 
         ? `https://${process.env.VERCEL_URL}` 
         : 'https://rise-production.vercel.app';
@@ -48,7 +54,8 @@ export default async function handler(req, res) {
         payment_method_types: ['card'],
         line_items: [{ price: priceId, quantity: 1 }],
         success_url: `${baseUrl}?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${baseUrl}/pricing`,
+        cancel_url: baseUrl,
+        customer_creation: 'always',
         allow_promotion_codes: true,
       });
       return res.status(200).json({ sessionId: session.id, url: session.url });

@@ -3,19 +3,28 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Card } from './ui';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const PRICE_IDS = {
+  starter: import.meta.env.VITE_STRIPE_PRICE_ID_STARTER || import.meta.env.VITE_STRIPE_PRICE_ID_PRO,
+  pro: import.meta.env.VITE_STRIPE_PRICE_ID_PRO,
+};
 
 export default function PricingPage({ dark, t, onClose }) {
-  const [loading, setLoading] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState(null);
 
-  const handleUpgrade = async () => {
-    setLoading(true);
+  const handleUpgrade = async (plan) => {
+    const priceId = PRICE_IDS[plan];
+    if (!priceId) {
+      alert('Missing Stripe price ID for selected plan.');
+      return;
+    }
+    setLoadingPlan(plan);
 
     try {
       const response = await fetch('/api/stripe?action=checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          priceId: import.meta.env.VITE_STRIPE_PRICE_ID_PRO,
+          priceId,
         }),
       });
 
@@ -23,11 +32,13 @@ export default function PricingPage({ dark, t, onClose }) {
 
       if (url) {
         window.location.href = url;
+        return;
       }
+      throw new Error('No checkout URL returned');
     } catch (err) {
       console.error('Checkout error:', err);
       alert('Failed to start checkout. Please try again.');
-      setLoading(false);
+      setLoadingPlan(null);
     }
   };
 
@@ -127,6 +138,65 @@ export default function PricingPage({ dark, t, onClose }) {
             </div>
           </Card>
 
+          {/* Starter Tier */}
+          <Card t={t} dark={dark} style={{
+            padding: 32,
+            border: `1px solid ${t.border}`,
+          }}>
+            <div style={{ marginBottom: 24 }}>
+              <h3 style={{
+                fontSize: 24,
+                fontWeight: 600,
+                color: t.text,
+                margin: 0,
+                marginBottom: 8,
+              }}>Starter</h3>
+              <div style={{
+                fontSize: 48,
+                fontWeight: 700,
+                color: t.text,
+                fontFamily: 'tabular-nums',
+              }}>$20</div>
+              <div style={{
+                fontSize: 14,
+                color: t.textSecondary,
+              }}>per month</div>
+            </div>
+
+            <ul style={{
+              listStyle: 'none',
+              padding: 0,
+              margin: 0,
+              marginBottom: 24,
+            }}>
+              <li style={{ marginBottom: 12, color: t.text }}>✓ Everything in Free</li>
+              <li style={{ marginBottom: 12, color: t.blue, fontWeight: 600 }}>+ Broker panel unlock</li>
+              <li style={{ marginBottom: 12, color: t.blue, fontWeight: 600 }}>+ cTrader + TradingView signal forwarding</li>
+              <li style={{ marginBottom: 12, color: t.blue, fontWeight: 600 }}>+ Priority queue for API jobs</li>
+              <li style={{ marginBottom: 12, color: t.blue, fontWeight: 600 }}>+ Basic auto-send controls</li>
+            </ul>
+
+            <button
+              onClick={() => handleUpgrade('starter')}
+              disabled={loadingPlan !== null}
+              style={{
+                width: '100%',
+                padding: 16,
+                background: t.accent,
+                color: '#fff',
+                border: 'none',
+                borderRadius: 12,
+                fontSize: 16,
+                fontWeight: 700,
+                cursor: loadingPlan ? 'not-allowed' : 'pointer',
+                opacity: loadingPlan ? 0.6 : 1,
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {loadingPlan === 'starter' ? 'Loading...' : 'Upgrade to Starter'}
+            </button>
+          </Card>
+
           {/* Pro Tier */}
           <Card t={t} dark={dark} style={{
             padding: 32,
@@ -146,7 +216,7 @@ export default function PricingPage({ dark, t, onClose }) {
                 fontWeight: 700,
                 color: t.text,
                 fontFamily: 'tabular-nums',
-              }}>$49</div>
+              }}>$50</div>
               <div style={{
                 fontSize: 14,
                 color: t.textSecondary,
@@ -159,17 +229,16 @@ export default function PricingPage({ dark, t, onClose }) {
               margin: 0,
               marginBottom: 24,
             }}>
-              <li style={{ marginBottom: 12, color: t.text }}>✓ Everything in Free</li>
-              <li style={{ marginBottom: 12, color: t.blue, fontWeight: 600 }}>+ Real-time cTrader integration</li>
-              <li style={{ marginBottom: 12, color: t.blue, fontWeight: 600 }}>+ TradingView webhook access</li>
-              <li style={{ marginBottom: 12, color: t.blue, fontWeight: 600 }}>+ Priority API access</li>
-              <li style={{ marginBottom: 12, color: t.blue, fontWeight: 600 }}>+ Advanced Monte Carlo scenarios</li>
-              <li style={{ marginBottom: 12, color: t.blue, fontWeight: 600 }}>+ Live trade execution</li>
+              <li style={{ marginBottom: 12, color: t.text }}>✓ Everything in Starter</li>
+              <li style={{ marginBottom: 12, color: t.blue, fontWeight: 600 }}>+ Full broker automation controls</li>
+              <li style={{ marginBottom: 12, color: t.blue, fontWeight: 600 }}>+ Higher signal throughput</li>
+              <li style={{ marginBottom: 12, color: t.blue, fontWeight: 600 }}>+ Expanded risk + execution settings</li>
+              <li style={{ marginBottom: 12, color: t.blue, fontWeight: 600 }}>+ Priority support and onboarding</li>
             </ul>
 
             <button
-              onClick={handleUpgrade}
-              disabled={loading}
+              onClick={() => handleUpgrade('pro')}
+              disabled={loadingPlan !== null}
               style={{
                 width: '100%',
                 padding: 16,
@@ -179,12 +248,12 @@ export default function PricingPage({ dark, t, onClose }) {
                 borderRadius: 12,
                 fontSize: 16,
                 fontWeight: 700,
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.6 : 1,
+                cursor: loadingPlan ? 'not-allowed' : 'pointer',
+                opacity: loadingPlan ? 0.6 : 1,
                 transition: 'all 0.2s ease',
               }}
             >
-              {loading ? 'Loading...' : 'Upgrade to Pro'}
+              {loadingPlan === 'pro' ? 'Loading...' : 'Upgrade to Pro'}
             </button>
           </Card>
         </div>
@@ -203,6 +272,8 @@ export default function PricingPage({ dark, t, onClose }) {
             lineHeight: 1.6,
           }}>
             Cancel anytime. No contracts. Secure payments powered by Stripe.
+            <br />
+            Apple Pay appears automatically on compatible Apple devices/browsers after Stripe domain verification.
           </p>
         </div>
       </div>
