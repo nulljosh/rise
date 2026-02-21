@@ -216,6 +216,72 @@ class TradingViewAdapter extends BrokerAdapter {
   }
 }
 
+// ─── Alpaca Adapter ───────────────────────────────────────────────────────────
+// Paper trading: api-paper.alpaca.markets | Live: api.alpaca.markets
+// Keys: ALPACA_API_KEY + ALPACA_API_SECRET from alpaca.markets → paper account
+
+class AlpacaAdapter extends BrokerAdapter {
+  constructor(config) {
+    super(config);
+    this.name = 'alpaca';
+    this.baseUrl = config.baseUrl || 'https://paper-api.alpaca.markets';
+  }
+
+  _headers() {
+    return {
+      'APCA-API-KEY-ID': this.config.apiKey || '',
+      'APCA-API-SECRET-KEY': this.config.apiSecret || '',
+      'Content-Type': 'application/json',
+    };
+  }
+
+  async connect() {
+    if (!this.config.apiKey || !this.config.apiSecret) {
+      throw new Error('[BROKER] Alpaca: missing apiKey or apiSecret');
+    }
+    const r = await fetch(`${this.baseUrl}/v2/account`, { headers: this._headers() });
+    if (!r.ok) throw new Error(`[BROKER] Alpaca: auth failed ${r.status}`);
+    this.connected = true;
+    console.log('[BROKER] Alpaca: connected (paper trading)');
+    return true;
+  }
+
+  async placeOrder(signal) {
+    this._validate(signal);
+    if (!this.connected) throw new Error('[BROKER] Alpaca: not connected');
+    const r = await fetch(`${this.baseUrl}/v2/orders`, {
+      method: 'POST',
+      headers: this._headers(),
+      body: JSON.stringify({
+        symbol: signal.sym.toUpperCase(),
+        qty: String(signal.size || 1),
+        side: signal.action,
+        type: 'market',
+        time_in_force: 'day',
+      }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(`[BROKER] Alpaca order failed: ${data.message}`);
+    console.log('[BROKER] Alpaca: order placed', data.id);
+    return { ok: true, orderId: data.id, broker: 'alpaca' };
+  }
+
+  async getPositions() {
+    if (!this.connected) return [];
+    const r = await fetch(`${this.baseUrl}/v2/positions`, { headers: this._headers() });
+    if (!r.ok) return [];
+    return r.json();
+  }
+
+  async getBalance() {
+    if (!this.connected) return null;
+    const r = await fetch(`${this.baseUrl}/v2/account`, { headers: this._headers() });
+    if (!r.ok) return null;
+    const d = await r.json();
+    return d.equity ? +d.equity : null;
+  }
+}
+
 // ─── IBKR Adapter (stub) ──────────────────────────────────────────────────────
 
 class IBKRAdapter extends BrokerAdapter {
@@ -239,9 +305,10 @@ export const createBroker = (type, config = {}) => {
   switch (type) {
     case 'ctrader':     return new CTraderAdapter(config);
     case 'tradingview': return new TradingViewAdapter(config);
+    case 'alpaca':      return new AlpacaAdapter(config);
     case 'ibkr':        return new IBKRAdapter(config);
     default: throw new Error(`[BROKER] Unknown broker type: ${type}`);
   }
 };
 
-export { BrokerAdapter, CTraderAdapter, TradingViewAdapter, IBKRAdapter };
+export { BrokerAdapter, CTraderAdapter, TradingViewAdapter, AlpacaAdapter, IBKRAdapter };

@@ -1,9 +1,11 @@
 import { useState, useRef } from 'react';
 import { Card } from './ui';
 import { createBroker } from '../utils/broker';
+import { useBroker } from '../hooks/useBroker';
 
 const BROKERS = [
-  { id: 'ctrader',     label: 'cTrader',      enabled: true  },
+  { id: 'alpaca',      label: 'Alpaca',        enabled: true  },
+  { id: 'ctrader',     label: 'cTrader',       enabled: true  },
   { id: 'tradingview', label: 'TradingView',   enabled: true  },
   { id: 'ibkr',        label: 'IBKR',          enabled: false },
 ];
@@ -19,12 +21,15 @@ export default function BrokerPanel({ dark, t, font, isPro, onUpgrade, config, o
     accountId:     config.accountId     || '',
     webhookUrl:    config.webhookUrl    || '',
     accessToken:   config.accessToken   || '',
+    alpacaKey:     config.alpacaKey     || '',
+    alpacaSecret:  config.alpacaSecret  || '',
   });
   const [connected, setConnected] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testMsg, setTestMsg] = useState(null); // { ok, text }
 
   const brokerRef = useRef(null);
+  const { positions, account, configured: alpacaConfigured } = useBroker();
 
   const save = (broker, updated) => {
     onConfigChange({ broker, ...updated });
@@ -52,6 +57,8 @@ export default function BrokerPanel({ dark, t, font, isPro, onUpgrade, config, o
         ? { clientId: fields.clientId, clientSecret: fields.clientSecret, refreshToken: fields.refreshToken, accountId: fields.accountId, accessToken: fields.accessToken }
         : selectedBroker === 'tradingview'
         ? { webhookUrl: fields.webhookUrl }
+        : selectedBroker === 'alpaca'
+        ? { apiKey: fields.alpacaKey, apiSecret: fields.alpacaSecret }
         : {};
 
       const adapter = createBroker(selectedBroker, cfg);
@@ -149,6 +156,52 @@ export default function BrokerPanel({ dark, t, font, isPro, onUpgrade, config, o
               />
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Fields: Alpaca */}
+      {selectedBroker === 'alpaca' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14 }}>
+          {[
+            { key: 'alpacaKey',    label: 'API Key',    ph: 'Alpaca API key ID'    },
+            { key: 'alpacaSecret', label: 'API Secret', ph: 'Alpaca API secret key' },
+          ].map(f => (
+            <div key={f.key}>
+              <div style={labelStyle}>{f.label}</div>
+              <input
+                type={f.key === 'alpacaSecret' ? 'password' : 'text'}
+                value={fields[f.key]}
+                onChange={e => handleField(f.key, e.target.value)}
+                placeholder={f.ph}
+                style={inputStyle}
+                disabled={!isPro}
+              />
+            </div>
+          ))}
+          <div style={{ fontSize: 10, color: t.textTertiary, lineHeight: 1.5 }}>
+            Paper trading via <code>paper-api.alpaca.markets</code>. Get keys at alpaca.markets.
+          </div>
+          {/* Live positions */}
+          {alpacaConfigured && account && (
+            <div style={{ background: dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', borderRadius: 8, padding: '8px 12px', fontSize: 10, fontFamily: font }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ color: t.textTertiary }}>Equity</span>
+                <span style={{ color: t.text, fontWeight: 700 }}>${account.equity?.toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ color: t.textTertiary }}>Day P&L</span>
+                <span style={{ color: account.dayPnl >= 0 ? t.green : t.red, fontWeight: 700 }}>
+                  {account.dayPnl >= 0 ? '+' : ''}{account.dayPnl?.toFixed(2)}
+                </span>
+              </div>
+              {positions.length > 0 && positions.map((p, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', borderTop: `1px solid ${t.border}`, fontSize: 9 }}>
+                  <span style={{ color: t.text, fontWeight: 600 }}>{p.symbol}</span>
+                  <span style={{ color: p.pnl >= 0 ? t.green : t.red }}>{p.pnl >= 0 ? '+' : ''}{p.pnl?.toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
