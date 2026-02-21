@@ -13,8 +13,9 @@ Rise is a financial terminal app with:
 
 - High-speed simulator UI (`src/App.jsx`)
 - Prediction market feed and filters
-- Situation Monitor map (`src/components/SituationMonitor.jsx`)
-- Serverless data endpoints under `api/`
+- Map-first backdrop + overlays (`src/components/LiveMapBackdrop.jsx`)
+- Tactical HUD styling pass (grid overlay + live status badge + neon map controls)
+- Single serverless API entry (`api/gateway.js`) with handlers under `server/api/`
 
 ## Situation Monitor Data Sources
 
@@ -26,8 +27,10 @@ Rise is a financial terminal app with:
 - Weather alerts: `/api/weather-alerts`
 
 Notes:
-- Map markers currently visualize flights/incidents/earthquakes.
-- Geopolitical events are shown in the events panel.
+- Map overlays include traffic/construction/seismic/global-event markers.
+- Local overlays refresh by current map viewport center.
+- Fallback markers are intentionally injected when upstream feeds are sparse, to avoid empty-city states.
+- Predictions are shown only when a confident geographic anchor is inferred.
 
 ## Local Development
 
@@ -57,6 +60,7 @@ git push origin main
 ```
 
 If Vercel is connected to this repo with production branch `main`, pushing `main` triggers a production deployment.
+If Hobby deploys fail with function-count errors, ensure endpoint logic stays in `server/api/` and only `api/gateway.js` is deployed as the runtime function.
 
 ## Billing / Upgrade
 

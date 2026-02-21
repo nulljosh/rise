@@ -64,9 +64,11 @@ export function useSituation() {
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'test') return;
-    fetchWithTimeout('http://ip-api.com/json/?fields=lat,lon,city,status')
+    fetchWithTimeout('https://ipapi.co/json/')
       .then(data => {
-        if (data.status === 'success') setUserLocation({ lat: data.lat, lon: data.lon, city: data.city });
+        if (typeof data.latitude === 'number' && typeof data.longitude === 'number') {
+          setUserLocation({ lat: data.latitude, lon: data.longitude, city: data.city || 'IP fallback' });
+        }
         else setLocationError('Geolocation unavailable');
       })
       .catch(err => setLocationError(err.message));

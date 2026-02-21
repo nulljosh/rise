@@ -10,7 +10,7 @@ Fast financial terminal with live markets, prediction signals, and a paper-tradi
 ## Stack
 
 - React 19 + Vite
-- Vercel serverless API (`api/`)
+- Vercel serverless API gateway (`api/gateway.js`) + handlers in `server/api/`
 - Polymarket + Yahoo Finance data
 - Situation Monitor map (flights, traffic, construction incidents, seismic)
 - Global geopolitical event feed (GDELT panel)
@@ -19,10 +19,14 @@ Fast financial terminal with live markets, prediction signals, and a paper-tradi
 ## Map-First Mode
 
 - Full-page live map backdrop with pulsing event markers
+- Tactical HUD visual pass inspired by map-intel interfaces (grid + status badge + neon controls)
+- Fast default map startup at NYC, then geolocation recenter when available
 - User location drop-pin (`YOU`) + recenter control
 - Local overlays: traffic incidents + construction/barriers + seismic events
 - Prediction markets projected onto geographic anchors (city/team/politics keyword inference)
 - Global feed pulses: geopolitical events
+- Viewport-based local refresh: panning to a new city refreshes local overlays for that city
+- Baseline fallback local markers keep map non-empty when upstream feeds are sparse
 
 Note:
 - Only predictions with a clear geographic anchor are plotted on the map.
@@ -52,7 +56,8 @@ npm run test:speed
 ## Layout
 
 - `src/` app UI, hooks, utils
-- `api/` market + broker endpoints
+- `api/gateway.js` single serverless entry
+- `server/api/` handler modules
 - `tests/` API and integration tests
 
 ## Deploy

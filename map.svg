@@ -16,7 +16,7 @@
 
   <rect width="860" height="420" rx="16" fill="url(#bg)"/>
   <text x="430" y="34" text-anchor="middle" class="t label">rise project map</text>
-  <text x="430" y="52" text-anchor="middle" class="t sub">lean layout: app + api + tests + deploy</text>
+  <text x="430" y="52" text-anchor="middle" class="t sub">lean layout: app + api gateway + handlers + tests + deploy</text>
 
   <rect x="355" y="72" width="150" height="36" class="box group"/>
   <text x="430" y="95" text-anchor="middle" class="t" style="font-size:13px;fill:#fff;font-weight:700;">rise/</text>
@@ -31,11 +31,11 @@
   <text x="130" y="245" text-anchor="middle" class="t sub">hooks + utils</text>
 
   <rect x="240" y="136" width="140" height="36" class="box group"/>
-  <text x="310" y="159" text-anchor="middle" class="t" style="font-size:12px;fill:#fff;">api/</text>
+  <text x="310" y="159" text-anchor="middle" class="t" style="font-size:12px;fill:#fff;">api gateway</text>
   <rect x="230" y="190" width="160" height="28" class="box"/>
-  <text x="310" y="209" text-anchor="middle" class="t sub">markets / stocks / latest</text>
+  <text x="310" y="209" text-anchor="middle" class="t sub">single runtime: api/gateway.js</text>
   <rect x="230" y="226" width="160" height="28" class="box"/>
-  <text x="310" y="245" text-anchor="middle" class="t sub">broker + weather + events</text>
+  <text x="310" y="245" text-anchor="middle" class="t sub">rewrites preserve /api/* URLs</text>
 
   <rect x="420" y="136" width="140" height="36" class="box group"/>
   <text x="490" y="159" text-anchor="middle" class="t" style="font-size:12px;fill:#fff;">tests/</text>
@@ -55,6 +55,6 @@
 
   <rect x="60" y="290" width="740" height="78" class="box"/>
   <text x="80" y="315" class="t label" style="font-size:11px;">Data Flow</text>
-  <text x="80" y="338" class="t sub">UI (src) -> serverless API (api) -> external feeds (Yahoo, Polymarket, NOAA, Alpaca)</text>
+  <text x="80" y="338" class="t sub">UI (src) -> API gateway -> server/api handlers -> external feeds (Yahoo, Polymarket, NOAA, Alpaca)</text>
   <text x="80" y="357" class="t sub">CI: npm test --run locally/CI, then push main for deploy targets</text>
 </svg>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const DEFAULT_CENTER = { lat: 40.7128, lon: -74.0060 };
 const API_BASE =
@@ -53,6 +53,7 @@ export default function LiveMapBackdrop({ dark }) {
   const [center, setCenter] = useState(DEFAULT_CENTER);
   const [centerReady] = useState(true);
   const [locLabel, setLocLabel] = useState('Locating…');
+  const [geoState, setGeoState] = useState('checking');
   const [payload, setPayload] = useState({ incidents: [], trafficIncidents: [], earthquakes: [], events: [], markets: [] });
   const [selected, setSelected] = useState(null);
 
@@ -88,8 +89,10 @@ export default function LiveMapBackdrop({ dark }) {
     }
   }, []);
 
-  useEffect(() => {
+  const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
+      setGeoState('unsupported');
+      setLocLabel('Geolocation unsupported');
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -97,6 +100,7 @@ export default function LiveMapBackdrop({ dark }) {
         shouldAutoFlyRef.current = true;
         setCenter({ lat: pos.coords.latitude, lon: pos.coords.longitude });
         setLocLabel('Current location');
+        setGeoState('granted');
         try {
           localStorage.setItem('rise_geo_granted', '1');
           sawGeoGrantedRef.current = true;
@@ -105,12 +109,13 @@ export default function LiveMapBackdrop({ dark }) {
         }
       },
       async () => {
+        setGeoState('denied');
         try {
-          const res = await fetch('http://ip-api.com/json/?fields=lat,lon,city,status');
+          const res = await fetch('https://ipapi.co/json/');
           const json = await res.json();
-          if (json.status === 'success') {
+          if (json && typeof json.latitude === 'number' && typeof json.longitude === 'number') {
             shouldAutoFlyRef.current = true;
-            setCenter({ lat: json.lat, lon: json.lon });
+            setCenter({ lat: json.latitude, lon: json.longitude });
             setLocLabel(json.city ? `${json.city} (IP)` : 'IP fallback');
           } else {
             setLocLabel('Location unavailable');
@@ -123,6 +128,10 @@ export default function LiveMapBackdrop({ dark }) {
       { enableHighAccuracy: true, timeout: 7000, maximumAge: 60000 }
     );
   }, []);
+
+  useEffect(() => {
+    requestLocation();
+  }, [requestLocation]);
 
   useEffect(() => {
     if (!navigator.permissions?.query) return;
@@ -139,6 +148,7 @@ export default function LiveMapBackdrop({ dark }) {
       .query({ name: 'geolocation' })
       .then((status) => {
         statusRef = status;
+        setGeoState(status.state);
         if (typeof status.addEventListener === 'function') {
           status.addEventListener('change', onChange);
         } else {
@@ -423,6 +433,7 @@ export default function LiveMapBackdrop({ dark }) {
         @keyframes pulse-amber { 0%{box-shadow:0 0 0 0 rgba(245,158,11,.45)} 70%{box-shadow:0 0 0 12px rgba(245,158,11,0)} 100%{box-shadow:0 0 0 0 rgba(245,158,11,0)} }
         @keyframes pulse-red { 0%{box-shadow:0 0 0 0 rgba(239,68,68,.45)} 70%{box-shadow:0 0 0 16px rgba(239,68,68,0)} 100%{box-shadow:0 0 0 0 rgba(239,68,68,0)} }
         @keyframes pulse-cyan { 0%{box-shadow:0 0 0 0 rgba(34,211,238,.45)} 70%{box-shadow:0 0 0 12px rgba(34,211,238,0)} 100%{box-shadow:0 0 0 0 rgba(34,211,238,0)} }
+        @keyframes hud-flicker { 0%, 100% { opacity: 0.9 } 50% { opacity: 0.72 } }
       `}</style>
       <div
         ref={mapRef}
@@ -445,23 +456,62 @@ export default function LiveMapBackdrop({ dark }) {
             : 'radial-gradient(circle at 50% 15%, rgba(255,255,255,0.06), rgba(255,255,255,0.26) 58%, rgba(244,247,252,0.42) 100%)',
         }}
       />
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: 'none',
+          background:
+            'linear-gradient(rgba(16,185,129,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.05) 1px, transparent 1px)',
+          backgroundSize: '52px 52px',
+          mixBlendMode: dark ? 'screen' : 'multiply',
+          opacity: 0.36,
+        }}
+      />
+      <div
+        style={{
+          position: 'fixed',
+          top: 12,
+          left: 12,
+          zIndex: 2,
+          border: '1px solid rgba(16,185,129,0.5)',
+          borderRadius: 8,
+          background: 'rgba(2,6,23,0.72)',
+          color: '#86efac',
+          padding: '6px 10px',
+          font: '700 10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace',
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          animation: 'hud-flicker 3s ease-in-out infinite',
+          pointerEvents: 'none',
+        }}
+      >
+        Tactical Map // Live
+      </div>
       <button
-        onClick={() => mapInstanceRef.current?.flyTo({ center: [center.lon, center.lat], zoom: 11.5, offset: [0, 120], duration: 900 })}
+        onClick={() => {
+          if (geoState !== 'granted') {
+            requestLocation();
+            return;
+          }
+          mapInstanceRef.current?.flyTo({ center: [center.lon, center.lat], zoom: 11.5, offset: [0, 120], duration: 900 });
+        }}
         style={{
           position: 'fixed',
           right: 14,
           bottom: 14,
           zIndex: 2,
-          border: '1px solid rgba(255,255,255,0.25)',
+          border: '1px solid rgba(16,185,129,0.5)',
           borderRadius: 999,
-          background: 'rgba(2,6,23,0.72)',
-          color: '#fff',
+          background: 'rgba(2,6,23,0.86)',
+          color: '#86efac',
           font: '600 11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace',
           padding: '6px 10px',
           cursor: 'pointer',
         }}
       >
-        YOU · {locLabel}
+        {geoState === 'granted' ? `YOU · ${locLabel}` : 'ENABLE LOCATION'}
       </button>
 
       {selected && (
