@@ -38,6 +38,7 @@ export default async function handler(req, res) {
   if (freshCached) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
+    res.setHeader('X-Rise-Data-Status', 'cache');
     return res.status(200).json(freshCached);
   }
 
@@ -117,6 +118,7 @@ export default async function handler(req, res) {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
+    res.setHeader('X-Rise-Data-Status', 'live');
     return res.status(200).json(validMarkets);
   } catch (error) {
     console.error('Markets API error:', error);
@@ -125,6 +127,7 @@ export default async function handler(req, res) {
     if (staleCached) {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
+      res.setHeader('X-Rise-Data-Status', 'stale');
       return res.status(200).json(staleCached);
     }
 

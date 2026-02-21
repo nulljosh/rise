@@ -8,15 +8,16 @@ const MAX_ATTEMPTS_PER_PROVIDER = process.env.NODE_ENV === 'test' ? 1 : 2;
 const RETRY_BASE_MS = 250;
 const ENABLE_CACHE = process.env.NODE_ENV !== 'test';
 const CACHE_TTL_MS = 30000;
+const STALE_IF_ERROR_MS = 5 * 60 * 1000;
 const cache = new Map();
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-function getCached(cacheKey) {
+function getCached(cacheKey, maxAgeMs) {
   if (!ENABLE_CACHE) return null;
   const cached = cache.get(cacheKey);
   if (!cached) return null;
-  if ((Date.now() - cached.ts) > CACHE_TTL_MS) return null;
+  if ((Date.now() - cached.ts) > maxAgeMs) return null;
   return cached.data;
 }
 
@@ -84,9 +85,10 @@ export default async function handler(req, res) {
   }
   const { symbolList } = parsed;
   const cacheKey = symbolList.join(',');
-  const cached = getCached(cacheKey);
+  const cached = getCached(cacheKey, CACHE_TTL_MS);
   if (cached) {
     setStockResponseHeaders(res);
+    res.setHeader('X-Rise-Data-Status', 'cache');
     return res.status(200).json(cached);
   }
 
@@ -110,8 +112,16 @@ export default async function handler(req, res) {
     }
 
     setStockResponseHeaders(res);
+    res.setHeader('X-Rise-Data-Status', 'live');
     return res.status(200).json(stocks);
   } catch (err) {
+    const staleCached = getCached(cacheKey, STALE_IF_ERROR_MS);
+    if (staleCached) {
+      setStockResponseHeaders(res);
+      res.setHeader('X-Rise-Data-Status', 'stale');
+      return res.status(200).json(staleCached);
+    }
+
     if (err.name === 'AbortError' || err.name === 'TimeoutError' || err.message === 'Request timeout') {
       return res.status(504).json({
         error: 'Request timeout',
