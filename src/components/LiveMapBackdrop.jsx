@@ -111,8 +111,9 @@ export default function LiveMapBackdrop({ dark }) {
           // ignore storage failures
         }
       },
-      async () => {
-        setGeoState('denied');
+      async (geoErr) => {
+        if (geoErr?.code === 1) setGeoState('denied');
+        else setGeoState('unavailable');
         try {
           const res = await fetch('https://ipapi.co/json/');
           const json = await res.json();
@@ -130,7 +131,7 @@ export default function LiveMapBackdrop({ dark }) {
           setLocLabel('Location unavailable');
         }
       },
-      { enableHighAccuracy: true, timeout: 7000, maximumAge: 60000 }
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 }
     );
   }, []);
 
@@ -142,10 +143,13 @@ export default function LiveMapBackdrop({ dark }) {
     if (!navigator.permissions?.query) return;
     let statusRef = null;
     const onChange = () => {
-      if (statusRef?.state === 'granted' && !sawGeoGrantedRef.current) {
-        try { localStorage.setItem('rise_geo_granted', '1'); } catch {}
-        sawGeoGrantedRef.current = true;
-        window.location.reload();
+      if (statusRef?.state === 'granted') {
+        setGeoState('granted');
+        requestLocation();
+        if (!sawGeoGrantedRef.current) {
+          try { localStorage.setItem('rise_geo_granted', '1'); } catch {}
+          sawGeoGrantedRef.current = true;
+        }
       }
     };
 
@@ -170,7 +174,7 @@ export default function LiveMapBackdrop({ dark }) {
         statusRef.onchange = null;
       }
     };
-  }, []);
+  }, [requestLocation]);
 
   useEffect(() => {
     if (!centerReady) return;
@@ -437,7 +441,6 @@ export default function LiveMapBackdrop({ dark }) {
         @keyframes pulse-amber { 0%{box-shadow:0 0 0 0 rgba(245,158,11,.45)} 70%{box-shadow:0 0 0 12px rgba(245,158,11,0)} 100%{box-shadow:0 0 0 0 rgba(245,158,11,0)} }
         @keyframes pulse-red { 0%{box-shadow:0 0 0 0 rgba(239,68,68,.45)} 70%{box-shadow:0 0 0 16px rgba(239,68,68,0)} 100%{box-shadow:0 0 0 0 rgba(239,68,68,0)} }
         @keyframes pulse-cyan { 0%{box-shadow:0 0 0 0 rgba(34,211,238,.45)} 70%{box-shadow:0 0 0 12px rgba(34,211,238,0)} 100%{box-shadow:0 0 0 0 rgba(34,211,238,0)} }
-        @keyframes hud-flicker { 0%, 100% { opacity: 0.9 } 50% { opacity: 0.72 } }
       `}</style>
       <div
         ref={mapRef}
@@ -473,26 +476,6 @@ export default function LiveMapBackdrop({ dark }) {
           opacity: 0.36,
         }}
       />
-      <div
-        style={{
-          position: 'fixed',
-          top: 12,
-          left: 12,
-          zIndex: 2,
-          border: '1px solid rgba(16,185,129,0.5)',
-          borderRadius: 8,
-          background: 'rgba(2,6,23,0.72)',
-          color: '#86efac',
-          padding: '6px 10px',
-          font: '700 10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace',
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          animation: 'hud-flicker 3s ease-in-out infinite',
-          pointerEvents: 'none',
-        }}
-      >
-        Tactical Map // Live
-      </div>
       <button
         onClick={() => {
           if (geoState !== 'granted') {
