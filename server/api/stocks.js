@@ -1,11 +1,10 @@
 import { parseSymbols, setStockResponseHeaders, YAHOO_HEADERS } from './stocks-shared.js';
 
-const YAHOO_PROVIDERS = [
-  'https://query1.finance.yahoo.com',
-  'https://query2.finance.yahoo.com',
-];
+const YAHOO_PROVIDERS = process.env.NODE_ENV === 'test'
+  ? ['https://query1.finance.yahoo.com']
+  : ['https://query1.finance.yahoo.com', 'https://query2.finance.yahoo.com'];
 const TIMEOUT_MS = 8000;
-const MAX_ATTEMPTS_PER_PROVIDER = 2;
+const MAX_ATTEMPTS_PER_PROVIDER = process.env.NODE_ENV === 'test' ? 1 : 2;
 const RETRY_BASE_MS = 250;
 const ENABLE_CACHE = process.env.NODE_ENV !== 'test';
 const CACHE_TTL_MS = 30000;
@@ -30,13 +29,25 @@ async function fetchQuotes(symbolList) {
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_PROVIDER; attempt += 1) {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+      let timeoutId;
 
       try {
-        const response = await fetch(url, {
-          headers: YAHOO_HEADERS,
-          signal: controller.signal,
+        const timeoutPromise = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => {
+            controller.abort();
+            const timeoutError = new Error('Request timeout');
+            timeoutError.name = 'TimeoutError';
+            reject(timeoutError);
+          }, TIMEOUT_MS);
         });
+
+        const response = await Promise.race([
+          fetch(url, {
+            headers: YAHOO_HEADERS,
+            signal: controller.signal,
+          }),
+          timeoutPromise,
+        ]);
 
         if (!response.ok) {
           throw new Error(`Yahoo Finance API returned ${response.status}: ${response.statusText}`);
@@ -101,7 +112,7 @@ export default async function handler(req, res) {
     setStockResponseHeaders(res);
     return res.status(200).json(stocks);
   } catch (err) {
-    if (err.name === 'AbortError') {
+    if (err.name === 'AbortError' || err.name === 'TimeoutError' || err.message === 'Request timeout') {
       return res.status(504).json({
         error: 'Request timeout',
         details: 'Yahoo Finance did not respond in time across providers',

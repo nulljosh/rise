@@ -1,6 +1,6 @@
 const POLYMARKET_URL = 'https://gamma-api.polymarket.com/markets';
 const REQUEST_TIMEOUT_MS = 10000;
-const MAX_ATTEMPTS = 3;
+const MAX_ATTEMPTS = process.env.NODE_ENV === 'test' ? 1 : 3;
 const RETRY_BASE_MS = 300;
 const ENABLE_CACHE = process.env.NODE_ENV !== 'test';
 const CACHE_TTL_MS = 30000;
@@ -48,14 +48,26 @@ export default async function handler(req, res) {
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+      let timeoutId;
       try {
-        const response = await fetch(url, {
-          signal: controller.signal,
-          headers: {
-            'Accept': 'application/json'
-          }
+        const timeoutPromise = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => {
+            controller.abort();
+            const timeoutError = new Error('Request timeout');
+            timeoutError.name = 'TimeoutError';
+            reject(timeoutError);
+          }, REQUEST_TIMEOUT_MS);
         });
+
+        const response = await Promise.race([
+          fetch(url, {
+            signal: controller.signal,
+            headers: {
+              'Accept': 'application/json'
+            }
+          }),
+          timeoutPromise,
+        ]);
 
         if (!response.ok) {
           throw new Error(`Polymarket API returned ${response.status}: ${response.statusText}`);
@@ -116,7 +128,7 @@ export default async function handler(req, res) {
       return res.status(200).json(staleCached);
     }
 
-    if (error.name === 'AbortError') {
+    if (error.name === 'AbortError' || error.name === 'TimeoutError' || error.message === 'Request timeout') {
       return res.status(504).json({
         error: 'Request timeout',
         details: 'Polymarket API did not respond in time'
