@@ -1009,28 +1009,7 @@ const reset = useCallback(() => {
       {/* Pricing Modal */}
       {showPricing && <PricingPage dark={dark} t={t} onClose={() => setShowPricing(false)} />}
 
-      <button
-        onClick={() => setHideSimulator(v => !v)}
-        style={{
-          position: 'fixed',
-          top: 86,
-          right: 14,
-          zIndex: 1100,
-          border: `1px solid ${t.border}`,
-          borderRadius: 999,
-          background: hideSimulator ? `${t.cyan}22` : t.surface,
-          color: hideSimulator ? t.cyan : t.textSecondary,
-          fontFamily: font,
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: '0.05em',
-          padding: '7px 12px',
-          cursor: 'pointer',
-          pointerEvents: 'auto',
-        }}
-      >
-        {hideSimulator ? 'SHOW SIMULATOR' : 'HIDE SIMULATOR'}
-      </button>
+      {/* Simulator toggle hidden until reimplementation */}
 
       <footer style={{ position: 'fixed', left: 0, right: 0, bottom: 8, zIndex: 2, textAlign: 'center', fontSize: 10, color: t.textTertiary, pointerEvents: 'auto' }}>
         &copy; 2026 &middot;{' '}
