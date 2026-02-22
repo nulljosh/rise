@@ -255,9 +255,10 @@ export function useStocks(symbols = DEFAULT_SYMBOLS) {
       console.error('Stock fetch error (all APIs failed):', err);
       retryCountRef.current += 1;
       const now = Date.now();
-      const age = lastLiveSuccessRef.current ? (now - lastLiveSuccessRef.current) : Number.POSITIVE_INFINITY;
+      const hadLiveSuccess = !!lastLiveSuccessRef.current;
+      const age = hadLiveSuccess ? (now - lastLiveSuccessRef.current) : 0;
       setReliability(prev => ({
-        status: age > STALE_AFTER_MS ? 'stale' : 'fallback',
+        status: hadLiveSuccess && age > STALE_AFTER_MS ? 'stale' : 'fallback',
         source: prev.source === 'live' ? 'cache' : prev.source,
         lastSuccessAt: prev.lastSuccessAt,
         lastAttemptAt: now,
