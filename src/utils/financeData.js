@@ -26,6 +26,7 @@ export const DEMO_BUDGET = {
     { name: 'Phone + Watch', amount: 165, frequency: 'monthly', note: 'Telus 5G+ $115 + device $50.38' },
     { name: 'Gym', amount: 30, frequency: 'monthly' },
     { name: 'Claude Pro', amount: 35, frequency: 'monthly', note: '$288 USD/year billed annually' },
+    { name: 'ChatGPT Plus', amount: 20, frequency: 'monthly', note: '$20 USD (considering $100/mo AI tools budget)' },
   ],
 };
 
