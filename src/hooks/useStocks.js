@@ -220,8 +220,8 @@ export function useStocks(symbols = DEFAULT_SYMBOLS) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [reliability, setReliability] = useState({
-    status: 'fallback',
-    source: 'static',
+    status: 'live',
+    source: 'loading',
     lastSuccessAt: null,
     lastAttemptAt: null,
   });
@@ -285,7 +285,7 @@ export function useStocks(symbols = DEFAULT_SYMBOLS) {
             const cacheAge = Date.now() - cachedAt;
             setStocks(prev => ({ ...FALLBACK_DATA, ...prev, ...stockMap }));
             setReliability({
-              status: cacheAge > STALE_AFTER_MS ? 'stale' : 'fallback',
+              status: cacheAge > STALE_AFTER_MS ? 'stale' : 'live',
               source: 'cache',
               lastSuccessAt: cachedAt,
               lastAttemptAt: Date.now(),
