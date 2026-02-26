@@ -17,12 +17,12 @@
   </defs>
 
   <rect width="600" height="700" fill="#ffffff"/>
-  <text x="300" y="40" class="title">Rise Trading Flow</text>
+  <text x="300" y="40" class="title">Opticon Trading Flow</text>
 
   <!-- Data Sources -->
   <rect x="50" y="80" width="160" height="60" rx="12" class="box-data"/>
-  <text x="130" y="108" class="text">Yahoo Finance</text>
-  <text x="130" y="125" class="sub">61 assets</text>
+  <text x="130" y="108" class="text">FMP + Yahoo</text>
+  <text x="130" y="125" class="sub">100 assets</text>
 
   <rect x="220" y="80" width="160" height="60" rx="12" class="box-data"/>
   <text x="300" y="108" class="text">Polymarket</text>
@@ -46,7 +46,7 @@
   <!-- Trading Algorithm -->
   <rect x="150" y="290" width="300" height="80" rx="12" class="box-algo"/>
   <text x="300" y="320" class="text">Trading Algorithm</text>
-  <text x="300" y="340" class="sub">Scan 61 assets for 1.0%+ momentum</text>
+  <text x="300" y="340" class="sub">Scan 100 assets for 1.0%+ momentum</text>
   <text x="300" y="355" class="sub">1.8% SL | 4.2% TP | Trailing stops</text>
   <line x1="300" y1="370" x2="300" y2="400" class="line"/>
 

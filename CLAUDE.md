@@ -103,8 +103,9 @@ If Hobby deploys fail with function-count errors, ensure endpoint logic stays in
 ## Stock Data API
 
 - FMP (Financial Modeling Prep) is the primary stock data source. Requires `FMP_API_KEY` env var.
-- Yahoo Finance chart API is the fallback when FMP is unavailable or quota exhausted.
+- Yahoo Finance chart API is the fallback when FMP is unavailable or quota exhausted. Yahoo requests are throttled in batches of 10 with 100ms delays to avoid rate limiting.
 - 90s cache TTL to stay within FMP 250 req/day free tier.
+- Cron job caches all 100 symbols (FMP batch first, Yahoo chunked fallback) to Vercel Blob daily.
 - `X-Opticon-Data-Source` header shows which provider served the data (`fmp`/`yahoo`/`mixed`).
 
 ## Stripe Setup

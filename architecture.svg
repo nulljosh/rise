@@ -19,7 +19,7 @@
 
   <rect x="30" y="95" width="160" height="50" rx="8" class="box"/>
   <text x="110" y="117" text-anchor="middle" class="title">Yahoo Finance</text>
-  <text x="110" y="133" text-anchor="middle" class="sub">fallback provider</text>
+  <text x="110" y="133" text-anchor="middle" class="sub">chunked fallback</text>
 
   <rect x="30" y="160" width="160" height="50" rx="8" class="box"/>
   <text x="110" y="182" text-anchor="middle" class="title">Polymarket API</text>
@@ -31,7 +31,7 @@
 
   <!-- Center: Core -->
   <rect x="240" y="60" width="220" height="100" rx="8" class="box core"/>
-  <text x="350" y="85" text-anchor="middle" class="title text-white">Rise Engine</text>
+  <text x="350" y="85" text-anchor="middle" class="title text-white">Opticon Engine</text>
   <text x="350" y="105" text-anchor="middle" class="sub text-white">Trading Simulator</text>
   <text x="350" y="120" text-anchor="middle" class="sub text-white">Risk Management</text>
   <text x="350" y="140" text-anchor="middle" class="sub text-white">50ms Tick Rate</text>

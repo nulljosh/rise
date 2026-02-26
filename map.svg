@@ -44,7 +44,7 @@
   <rect x="20" y="140" width="160" height="36" rx="7" class="box"/>
   <rect x="20" y="140" width="6" height="36" rx="3" class="grp"/>
   <text x="100" y="158" text-anchor="middle" class="t title" style="font-size:12px;">Yahoo Finance</text>
-  <text x="100" y="172" text-anchor="middle" class="t sub">fallback + chart API</text>
+  <text x="100" y="172" text-anchor="middle" class="t sub">chunked fallback (10/batch)</text>
 
   <!-- Polymarket -->
   <rect x="20" y="186" width="160" height="36" rx="7" class="box"/>
@@ -94,7 +94,7 @@
   <text x="430" y="124" text-anchor="middle" class="t" style="font-size:10.5px;fill:#bfdbfe;">single Vercel function</text>
   <text x="430" y="140" text-anchor="middle" class="t" style="font-size:10.5px;fill:#bfdbfe;">routes: stocks + markets + auth + portfolio</text>
   <text x="430" y="156" text-anchor="middle" class="t" style="font-size:10.5px;fill:#bfdbfe;">earthquakes + events + traffic + +14 more</text>
-  <text x="430" y="172" text-anchor="middle" class="t" style="font-size:10.5px;fill:#bfdbfe;">FMP primary / Yahoo fallback</text>
+  <text x="430" y="172" text-anchor="middle" class="t" style="font-size:10.5px;fill:#bfdbfe;">FMP batch / Yahoo throttled fallback</text>
 
   <!-- KV Store -->
   <rect x="310" y="196" width="115" height="56" rx="7" class="box"/>

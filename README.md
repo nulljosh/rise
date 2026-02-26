@@ -9,7 +9,7 @@ Map-first situation monitor with scrolling stock tickers, personal finance dashb
 ## What It Does
 
 - Full-page live map with tactical HUD (traffic, crime, earthquakes, events, flights, weather)
-- Scrolling stock ticker: Mag 7 + 100 US assets, 30s refresh (FMP primary, Yahoo fallback)
+- Scrolling stock ticker: Mag 7 + 100 US assets, 30s refresh (FMP batch primary, Yahoo chunked fallback)
 - Prediction markets geo-anchored as map pins (Polymarket)
 - Personal finance panel: portfolio, budget, debt, goals, spending trends
 - Server-side portfolio persistence via Vercel KV + CLI access (`balance`)
@@ -20,7 +20,7 @@ Map-first situation monitor with scrolling stock tickers, personal finance dashb
 - React 19 + Vite + MapLibre GL
 - Vercel serverless (`api/gateway.js` single function, 20+ routes)
 - Vercel KV (Upstash Redis) for auth, sessions, portfolio
-- FMP + Yahoo Finance + Polymarket + GDELT + USGS + OSM + PredictHQ
+- FMP batch + Yahoo Finance (throttled fallback) + Polymarket + GDELT + USGS + OSM + PredictHQ
 
 ## Run
 
@@ -38,9 +38,8 @@ npm run dev
 
 ## Coming Soon
 
-- Live markets panel with per-stock charts
-- Trading simulator UI (coded, not yet visible)
 - Custom watchlist with autocomplete ticker search
+- Live markets panel with per-stock charts
 
 ## Deploy
 
