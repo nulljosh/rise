@@ -257,12 +257,23 @@ export function useStocks(symbols = DEFAULT_SYMBOLS) {
       const now = Date.now();
       const hadLiveSuccess = !!lastLiveSuccessRef.current;
       const age = hadLiveSuccess ? (now - lastLiveSuccessRef.current) : 0;
-      setReliability(prev => ({
-        status: hadLiveSuccess && age > STALE_AFTER_MS ? 'stale' : 'fallback',
-        source: prev.source === 'live' ? 'cache' : prev.source,
-        lastSuccessAt: prev.lastSuccessAt,
-        lastAttemptAt: now,
-      }));
+      setReliability(prev => {
+        // Don't downgrade to fallback if cache seed loaded fresh data
+        if (hadLiveSuccess) {
+          return {
+            status: age > STALE_AFTER_MS ? 'stale' : prev.status,
+            source: prev.source === 'live' ? 'cache' : prev.source,
+            lastSuccessAt: prev.lastSuccessAt,
+            lastAttemptAt: now,
+          };
+        }
+        return {
+          status: 'fallback',
+          source: prev.source === 'live' ? 'cache' : prev.source,
+          lastSuccessAt: prev.lastSuccessAt,
+          lastAttemptAt: now,
+        };
+      });
       setStocks(prev => (Object.keys(prev || {}).length > 0 ? prev : FALLBACK_DATA));
     } finally {
       setLoading(false);
@@ -283,6 +294,7 @@ export function useStocks(symbols = DEFAULT_SYMBOLS) {
           if (stockMap) {
             const cachedAt = data.updatedAt ? new Date(data.updatedAt).getTime() : Date.now();
             const cacheAge = Date.now() - cachedAt;
+            lastLiveSuccessRef.current = cachedAt;
             setStocks(prev => ({ ...FALLBACK_DATA, ...prev, ...stockMap }));
             setReliability({
               status: cacheAge > STALE_AFTER_MS ? 'stale' : 'live',
