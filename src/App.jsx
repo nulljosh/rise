@@ -950,9 +950,9 @@ const reset = useCallback(() => {
           </button>
           <button
             onClick={logout}
-            style={{ background: 'transparent', border: `1px solid ${t.border}`, borderRadius: 6, padding: '5px 8px', color: t.textTertiary, fontSize: 9, fontWeight: 500, cursor: 'pointer', fontFamily: font }}
+            style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 6, padding: '5px 10px', color: '#ef4444', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: font }}
           >
-            OUT
+            LOGOUT
           </button>
         </div>
       </header>
