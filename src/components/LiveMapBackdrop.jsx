@@ -292,9 +292,9 @@ export default function LiveMapBackdrop({ dark }) {
           );
         };
 
-        // User pin (Apple Maps style)
+        // User pin (Apple Maps drop pin style)
         addMarker(
-          'width:22px;height:32px;background-image:url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 27 43\'><defs><linearGradient id=\'pg\' x1=\'0\' y1=\'0\' x2=\'0\' y2=\'1\'><stop offset=\'0\' stop-color=\'%23ff453a\'/><stop offset=\'1\' stop-color=\'%23d70015\'/></linearGradient><filter id=\'s\'><feDropShadow dx=\'0\' dy=\'1\' stdDeviation=\'1.2\' flood-opacity=\'0.3\'/></filter></defs><ellipse cx=\'13.5\' cy=\'41\' rx=\'4\' ry=\'1.5\' fill=\'%23000\' opacity=\'.18\'/><path d=\'M13.5 0C6.04 0 0 6.04 0 13.5 0 25.27 13.5 41 13.5 41S27 25.27 27 13.5C27 6.04 20.96 0 13.5 0z\' fill=\'url(%23pg)\' filter=\'url(%23s)\'/><circle cx=\'13.5\' cy=\'13.5\' r=\'5.5\' fill=\'white\'/></svg>");background-size:contain;background-repeat:no-repeat;',
+          'width:28px;height:42px;background-image:url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 28 42\'><defs><radialGradient id=\'rg\' cx=\'40%25\' cy=\'35%25\' r=\'60%25\'><stop offset=\'0\' stop-color=\'%23ff6961\'/><stop offset=\'1\' stop-color=\'%23cc0000\'/></radialGradient><filter id=\'ds\'><feDropShadow dx=\'0\' dy=\'1.5\' stdDeviation=\'1.5\' flood-opacity=\'0.35\'/></filter></defs><ellipse cx=\'14\' cy=\'40\' rx=\'5\' ry=\'1.8\' fill=\'%23000\' opacity=\'.2\'/><line x1=\'14\' y1=\'22\' x2=\'14\' y2=\'39\' stroke=\'%23888\' stroke-width=\'2\' stroke-linecap=\'round\'/><circle cx=\'14\' cy=\'13\' r=\'12\' fill=\'url(%23rg)\' filter=\'url(%23ds)\'/><circle cx=\'11\' cy=\'10\' r=\'3.5\' fill=\'white\' opacity=\'.45\'/></svg>");background-size:contain;background-repeat:no-repeat;cursor:pointer;',
           'you',
           { type: 'location', title: 'You', detail: locLabel, level: 'local', source: geoState === 'granted' ? 'Browser Geolocation' : 'IP Geolocation', link: mapsLink(userPosition.lat, userPosition.lon) },
           userPosition.lon, userPosition.lat
