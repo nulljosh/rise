@@ -26,9 +26,48 @@ function saveToStorage(data) {
   }
 }
 
-export function usePortfolio(stocks) {
+async function fetchServerPortfolio() {
+  try {
+    const res = await fetch('/api/portfolio?action=get', { credentials: 'include' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.empty) return null;
+    const { valid } = validatePortfolioData(data);
+    return valid ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+async function pushToServer(data) {
+  try {
+    await fetch('/api/portfolio?action=update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(data),
+    });
+  } catch {
+    // best-effort server sync
+  }
+}
+
+export function usePortfolio(stocks, isAuthenticated) {
   const [customData, setCustomData] = useState(() => loadFromStorage());
+  const [serverLoaded, setServerLoaded] = useState(false);
   const isDemo = !customData;
+
+  // Fetch from server when authenticated
+  useEffect(() => {
+    if (!isAuthenticated || serverLoaded) return;
+    fetchServerPortfolio().then(data => {
+      setServerLoaded(true);
+      if (data) {
+        setCustomData(data);
+        saveToStorage(data);
+      }
+    });
+  }, [isAuthenticated, serverLoaded]);
 
   const holdings = customData?.holdings ?? DEMO_HOLDINGS;
   const accounts = customData?.accounts ?? DEMO_ACCOUNTS;
@@ -68,8 +107,9 @@ export function usePortfolio(stocks) {
     if (!valid) return { success: false, error };
     setCustomData(data);
     saveToStorage(data);
+    if (isAuthenticated) pushToServer(data);
     return { success: true };
-  }, []);
+  }, [isAuthenticated]);
 
   const exportData = useCallback(() => {
     return customData || {

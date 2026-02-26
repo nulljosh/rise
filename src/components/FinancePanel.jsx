@@ -144,7 +144,7 @@ function SpendingChart({ spending, t }) {
   );
 }
 
-export default function FinancePanel({ dark, t, stocks, onClose }) {
+export default function FinancePanel({ dark, t, stocks, isAuthenticated, onClose }) {
   const [tab, setTab] = useState('portfolio');
   const [importError, setImportError] = useState(null);
   const fileInputRef = useRef(null);
@@ -153,7 +153,7 @@ export default function FinancePanel({ dark, t, stocks, onClose }) {
     holdings, accounts, budget, debt, goals, spending, giving,
     stocksValue, cashValue, totalDebt, totalIncome, totalExpenses,
     surplus, netWorth, isDemo, importData, exportData, resetToDemo,
-  } = usePortfolio(stocks);
+  } = usePortfolio(stocks, isAuthenticated);
 
   const handleImport = useCallback((e) => {
     const file = e.target.files?.[0];

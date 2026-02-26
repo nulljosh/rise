@@ -1070,7 +1070,7 @@ const reset = useCallback(() => {
       {showPricing && <PricingPage dark={dark} t={t} onClose={() => setShowPricing(false)} />}
 
       {/* Finance Panel */}
-      {showFinance && <FinancePanel dark={dark} t={t} stocks={stocks} onClose={() => setShowFinance(false)} />}
+      {showFinance && <FinancePanel dark={dark} t={t} stocks={stocks} isAuthenticated={isAuthenticated} onClose={() => setShowFinance(false)} />}
 
       {/* Simulator toggle hidden until reimplementation */}
 

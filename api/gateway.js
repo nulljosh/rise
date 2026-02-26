@@ -22,6 +22,7 @@ import validateLink from '../server/api/validate-link.js';
 import weatherAlerts from '../server/api/weather-alerts.js';
 import weather from '../server/api/weather.js';
 import webhook from '../server/api/webhook.js';
+import portfolio from '../server/api/portfolio.js';
 import brokerSignal from '../server/api/broker/signal.js';
 import brokerPositions from '../server/api/broker/positions.js';
 import brokerWebhook from '../server/api/broker/webhook.js';
@@ -52,6 +53,7 @@ const ROUTES = {
   'weather-alerts': weatherAlerts,
   weather,
   webhook,
+  portfolio,
   'broker/signal': brokerSignal,
   'broker/positions': brokerPositions,
   'broker/webhook': brokerWebhook,
