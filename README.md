@@ -2,8 +2,8 @@
 
 Financial terminal with live markets, prediction signals, situation monitor, personal finance dashboard, and a paper-trading simulator.
 
-**Live**: https://opticon-production.vercel.app
-**Docs**: https://heyitsmejosh.com/rise/
+**Live**: https://opticon.heyitsmejosh.com
+**Docs**: https://heyitsmejosh.com/opticon/
 
 ![Project Map](map.svg)
 
@@ -22,7 +22,7 @@ Financial terminal with live markets, prediction signals, situation monitor, per
 
 ## Personal Finance
 
-The **Portfolio** panel (merged from finn/) provides:
+The **Portfolio** panel provides:
 
 - Live-valued stock holdings with gain/loss tracking
 - Cash accounts and net worth calculation
@@ -117,7 +117,6 @@ npm run test:speed
 - `server/api/portfolio.js` KV-backed portfolio CRUD API
 - `api/gateway.js` single serverless entry
 - `server/api/` handler modules
-- `finn/scripts/` + `finn/cli/` local finance tooling (kept for CLI use)
 
 ## Roadmap
 
@@ -134,8 +133,8 @@ Gotham-inspired feature map, ordered by implementation priority:
 
 ## Deploy
 
-- `main` branch: production deploy (Vercel if repo-connected)
-- GitHub Pages workflow also runs on `main`
+- `main` branch pushes trigger production deploy via Vercel
+- Custom domain: `opticon.heyitsmejosh.com`
 
 ## Pricing
 

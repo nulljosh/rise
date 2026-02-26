@@ -2,10 +2,8 @@
 
 ## Deployment Targets
 
-- Vercel production: `https://opticon-production.vercel.app/`
-- GitHub Pages docs shell: `https://heyitsmejosh.com/rise/`
-
-Use the Vercel production URL for runtime/API validation.
+- Production: `https://opticon.heyitsmejosh.com`
+- Docs: `https://heyitsmejosh.com/opticon/`
 
 ## What This Project Is
 
@@ -19,28 +17,30 @@ Opticon is a financial terminal app with:
 - Single serverless API entry (`api/gateway.js`) with handlers under `server/api/`
 - Stock data: FMP batch quotes (primary) + Yahoo Finance (fallback)
 - Auth system: bcrypt password hashing, httpOnly cookie sessions, email verification
+- Portfolio API: KV-backed CRUD (`server/api/portfolio.js`), syncs with CLI via `balance` command
 - Geolocation zoom policy: granted GPS uses neighborhood zoom; cached location uses near-neighborhood zoom; IP fallback stays wider.
 
 ## Auth System
 
 - `server/api/auth.js` -- register, login, verify-email, me, logout actions
-- `src/hooks/useAuth.js` -- auth state hook (replaces bare localStorage customer ID)
+- `src/hooks/useAuth.js` -- auth state hook
 - `src/components/LoginPage.jsx` -- login form
 - `src/components/RegisterPage.jsx` -- register form with inline pricing
 - Sessions: httpOnly secure cookie, stored in Vercel KV (`session:{token}`)
 - Users: stored in KV (`user:{email}`)
-- Email verification: token stored in KV (`verify:{token}`), sent via nodemailer
+- Email verification: token stored in KV (`verify:{token}`)
 
-## Finance Panel (finn merge)
+## Finance Panel
 
 - `src/components/FinancePanel.jsx` -- full-screen finance overlay
-- `src/hooks/usePortfolio.js` -- portfolio data hook, localStorage persistence
+- `src/hooks/usePortfolio.js` -- portfolio data hook, server sync when authenticated, localStorage fallback
 - `src/utils/financeData.js` -- demo data + JSON schema validation
+- `server/api/portfolio.js` -- KV-backed portfolio CRUD (get, update, summary)
 - PORTFOLIO button in header opens the panel
 - Users can import/export JSON balance sheets
-- Demo data from finn/ loads by default
+- Demo data loads by default
 - Live stock prices from useStocks merge into holdings for real-time valuation
-- `finn/scripts/` and `finn/cli/` kept as local CLI tooling
+- CLI: `~/.local/bin/balance` reads/writes portfolio via API
 
 ## Situation Monitor Data Sources
 
@@ -86,7 +86,7 @@ git commit -m "..."
 git push origin main
 ```
 
-If Vercel is connected to this repo with production branch `main`, pushing `main` triggers a production deployment.
+Pushing `main` triggers production deploy on Vercel. Custom domain: `opticon.heyitsmejosh.com`.
 If Hobby deploys fail with function-count errors, ensure endpoint logic stays in `server/api/` and only `api/gateway.js` is deployed as the runtime function.
 
 ## Billing / Upgrade
@@ -124,7 +124,7 @@ To activate paid tiers:
    - `VITE_STRIPE_PRICE_ID_STARTER` -- same as STRIPE_PRICE_ID_STARTER (needed client-side)
    - `VITE_STRIPE_PRICE_ID_PRO` -- same as STRIPE_PRICE_ID_PRO (needed client-side)
 5. For Apple Pay: Stripe Dashboard > Settings > Payment methods > Apple Pay > add + verify domain
-6. Webhook (optional): create endpoint at `https://opticon-production.vercel.app/api/stripe?action=webhook` for `checkout.session.completed` events
+6. Webhook (optional): create endpoint at `https://opticon.heyitsmejosh.com/api/stripe?action=webhook` for `checkout.session.completed` events
 
 ## Current Priorities
 

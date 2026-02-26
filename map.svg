@@ -27,7 +27,7 @@
   <rect width="1020" height="520" rx="14" fill="url(#bg)"/>
 
   <!-- Title -->
-  <text x="510" y="32" text-anchor="middle" class="t title">rise -- system architecture</text>
+  <text x="510" y="32" text-anchor="middle" class="t title">opticon -- system architecture</text>
   <text x="510" y="50" text-anchor="middle" class="t sub">financial terminal + personal finance + live map + simulator + prediction markets</text>
 
   <!-- ===== COL 1: DATA SOURCES ===== -->
@@ -92,15 +92,15 @@
   <rect x="310" y="84" width="240" height="100" rx="7" fill="#0b63ce"/>
   <text x="430" y="106" text-anchor="middle" class="t" style="font-size:13px;fill:#fff;font-weight:700;">api/gateway.js</text>
   <text x="430" y="124" text-anchor="middle" class="t" style="font-size:10.5px;fill:#bfdbfe;">single Vercel function</text>
-  <text x="430" y="140" text-anchor="middle" class="t" style="font-size:10.5px;fill:#bfdbfe;">routes: stocks + markets + incidents</text>
-  <text x="430" y="156" text-anchor="middle" class="t" style="font-size:10.5px;fill:#bfdbfe;">earthquakes + events + traffic + +14</text>
+  <text x="430" y="140" text-anchor="middle" class="t" style="font-size:10.5px;fill:#bfdbfe;">routes: stocks + markets + auth + portfolio</text>
+  <text x="430" y="156" text-anchor="middle" class="t" style="font-size:10.5px;fill:#bfdbfe;">earthquakes + events + traffic + +14 more</text>
   <text x="430" y="172" text-anchor="middle" class="t" style="font-size:10.5px;fill:#bfdbfe;">FMP primary / Yahoo fallback</text>
 
-  <!-- Blob Cache -->
+  <!-- KV Store -->
   <rect x="310" y="196" width="115" height="56" rx="7" class="box"/>
-  <text x="368" y="218" text-anchor="middle" class="t title" style="font-size:11px;">Vercel Blob</text>
-  <text x="368" y="234" text-anchor="middle" class="t sub">cache layer</text>
-  <text x="368" y="248" text-anchor="middle" class="t sub">cron 08:00 UTC</text>
+  <text x="368" y="218" text-anchor="middle" class="t title" style="font-size:11px;">Vercel KV</text>
+  <text x="368" y="234" text-anchor="middle" class="t sub">auth + sessions</text>
+  <text x="368" y="248" text-anchor="middle" class="t sub">portfolio data</text>
 
   <!-- Simulator Core -->
   <rect x="435" y="196" width="115" height="56" rx="7" fill="#16a34a"/>
@@ -110,11 +110,11 @@
 
   <!-- Finance Panel -->
   <rect x="310" y="264" width="240" height="56" rx="7" fill="#0891b2"/>
-  <text x="430" y="286" text-anchor="middle" class="t" style="font-size:11px;fill:#fff;font-weight:700;">Finance Panel (finn merge)</text>
+  <text x="430" y="286" text-anchor="middle" class="t" style="font-size:11px;fill:#fff;font-weight:700;">Finance Panel</text>
   <text x="430" y="302" text-anchor="middle" class="t" style="font-size:10px;fill:#cffafe;">portfolio + budget + debt + goals + spending</text>
-  <text x="430" y="316" text-anchor="middle" class="t" style="font-size:10px;fill:#cffafe;">localStorage + JSON import/export</text>
+  <text x="430" y="316" text-anchor="middle" class="t" style="font-size:10px;fill:#cffafe;">KV persistence + localStorage fallback</text>
 
-  <!-- gateway to blob/sim -->
+  <!-- gateway to kv/sim -->
   <line x1="368" y1="184" x2="368" y2="196" class="line"/>
   <line x1="493" y1="184" x2="493" y2="196" class="line"/>
 
@@ -132,7 +132,7 @@
   <rect x="700" y="152" width="300" height="40" rx="7" class="box"/>
   <rect x="700" y="152" width="6" height="40" rx="3" class="grp-a"/>
   <text x="850" y="171" text-anchor="middle" class="t title" style="font-size:12px;">Stock Ticker</text>
-  <text x="850" y="187" text-anchor="middle" class="t sub">100 assets + FMP live prices</text>
+  <text x="850" y="187" text-anchor="middle" class="t sub">100 assets + 30s live refresh</text>
 
   <!-- Situation Monitor -->
   <rect x="700" y="204" width="145" height="66" rx="7" class="box"/>
@@ -173,5 +173,5 @@
   <!-- ===== BOTTOM: INFRA ===== -->
   <rect x="20" y="440" width="980" height="52" rx="8" class="box"/>
   <text x="510" y="460" text-anchor="middle" class="t label">INFRASTRUCTURE</text>
-  <text x="510" y="478" text-anchor="middle" class="t sub">Vercel (single function) + GitHub Actions CI (vitest) + Vercel Blob (cron cache) + CartoCDN tiles + FMP API + rise.heyitsmejosh.com</text>
+  <text x="510" y="478" text-anchor="middle" class="t sub">Vercel (single function) + Vercel KV (Upstash Redis) + GitHub Actions CI (vitest) + CartoCDN tiles + FMP API + opticon.heyitsmejosh.com</text>
 </svg>
