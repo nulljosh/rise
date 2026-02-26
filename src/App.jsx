@@ -16,6 +16,7 @@ import { createBroker } from './utils/broker';
 import { useSubscription } from './hooks/useSubscription';
 import { useAuth } from './hooks/useAuth';
 import { useWatchlist } from './hooks/useWatchlist';
+import { useWeather } from './hooks/useWeather';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 
@@ -161,6 +162,7 @@ export default function App() {
   const [showFinance, setShowFinance] = useState(false);
   const { isPro, isFree } = useSubscription();
   const { watchlist, addSymbol, removeSymbol, toggleSymbol } = useWatchlist(user);
+  const weather = useWeather();
 
   // Fibonacci levels from $1 to $10T
   const FIB_LEVELS = [
@@ -906,6 +908,14 @@ const reset = useCallback(() => {
           <span style={{ color: t.text, fontSize: 15, fontWeight: 700, letterSpacing: '-0.3px' }}>opticon</span>
           <span style={{ width: 1, height: 14, background: t.border, marginLeft: 8 }} />
           <StatusBar t={t} reliability={stocksReliability} />
+          {weather && (
+            <>
+              <span style={{ width: 1, height: 14, background: t.border }} />
+              <span style={{ fontSize: 11, color: t.textSecondary, whiteSpace: 'nowrap' }}>
+                {weather.icon} {weather.temp}°C {weather.description}
+              </span>
+            </>
+          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 10, color: t.textTertiary, fontVariantNumeric: 'tabular-nums' }}>{formatLastUpdated(lastUpdated)}</span>
