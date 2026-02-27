@@ -133,3 +133,11 @@ To activate paid tiers:
 - Keep API handlers small and test-covered
 - Deduplicate logic before adding new features
 - Preserve UI behavior unless explicitly requested
+
+## Roadmap
+- [ ] iOS companion app (opticon-ios)
+- [ ] Apple Pay integration via Stripe
+- [ ] Real-time WebSocket quotes
+- [ ] Portfolio analytics dashboard
+- [ ] Prediction market accuracy tracking
+- [ ] Price alert system with push notifications
