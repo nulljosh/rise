@@ -1,12 +1,31 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
 const PROD_API = 'https://rise-production.vercel.app';
 
 // https://vite.dev/config/
 export default defineConfig({
   base: process.env.VERCEL ? '/' : (process.env.NODE_ENV === 'production' ? '/rise/' : '/'),
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      manifest: {
+        name: 'Opticon',
+        short_name: 'Opticon',
+        description: 'Financial terminal',
+        theme_color: '#0a0a0a',
+        background_color: '#0a0a0a',
+        display: 'standalone',
+        orientation: 'portrait',
+        icons: [
+          { src: '/icon-192.svg', sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
+          { src: '/icon-512.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
+        ]
+      }
+    })
+  ],
   server: {
     proxy: {
       '/api/markets': {
