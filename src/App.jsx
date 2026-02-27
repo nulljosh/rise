@@ -926,40 +926,44 @@ const reset = useCallback(() => {
           )}
         </div>
         {isMobileNav ? (
-          <MobileMenu t={t} font={font}>
-            {weather && (
-              <>
-                <MobileMenuItem t={t} font={font} style={{ color: t.textTertiary, fontSize: 11, cursor: 'default' }}>
-                  {weather.icon} {weather.temp}°C {weather.description}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <MobileMenu t={t} font={font}>
+              {weather && (
+                <>
+                  <MobileMenuItem t={t} font={font} style={{ color: t.textTertiary, fontSize: 11, cursor: 'default' }}>
+                    {weather.icon} {weather.temp}°C {weather.description}
+                  </MobileMenuItem>
+                  <MobileMenuDivider t={t} />
+                </>
+              )}
+              <MobileMenuItem t={t} font={font} style={{ color: t.textTertiary, fontSize: 10 }}>
+                {formatLastUpdated(lastUpdated)}
+              </MobileMenuItem>
+              {pmError && (
+                <MobileMenuItem t={t} font={font} style={{ color: t.red, fontSize: 10 }}>
+                  API error
                 </MobileMenuItem>
-                <MobileMenuDivider t={t} />
-              </>
-            )}
-            <MobileMenuItem t={t} font={font} style={{ color: t.textTertiary, fontSize: 10 }}>
-              {formatLastUpdated(lastUpdated)}
-            </MobileMenuItem>
-            {pmError && (
-              <MobileMenuItem t={t} font={font} style={{ color: t.red, fontSize: 10 }}>
-                API error
+              )}
+              <MobileMenuDivider t={t} />
+              <MobileMenuItem t={t} font={font} onClick={() => setShowFinance(true)}>
+                PORTFOLIO
               </MobileMenuItem>
-            )}
-            <MobileMenuDivider t={t} />
-            <MobileMenuItem t={t} font={font} onClick={() => setShowFinance(true)}>
-              PORTFOLIO
-            </MobileMenuItem>
-            {isFree && (
-              <MobileMenuItem t={t} font={font} onClick={() => setShowPricing(true)} style={{ color: '#0071e3' }}>
-                UPGRADE
+              {isFree && (
+                <MobileMenuItem t={t} font={font} onClick={() => setShowPricing(true)} style={{ color: '#0071e3' }}>
+                  UPGRADE
+                </MobileMenuItem>
+              )}
+              <MobileMenuItem t={t} font={font} onClick={() => setDark(!dark)}>
+                {dark ? 'LIGHT MODE' : 'DARK MODE'}
               </MobileMenuItem>
-            )}
-            <MobileMenuItem t={t} font={font} onClick={() => setDark(!dark)}>
-              {dark ? 'LIGHT MODE' : 'DARK MODE'}
-            </MobileMenuItem>
-            <MobileMenuDivider t={t} />
-            <MobileMenuItem t={t} font={font} onClick={logout} style={{ color: '#ef4444' }}>
+            </MobileMenu>
+            <button
+              onClick={logout}
+              style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 6, padding: '5px 10px', color: '#ef4444', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: font }}
+            >
               LOGOUT
-            </MobileMenuItem>
-          </MobileMenu>
+            </button>
+          </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 10, color: t.textTertiary, fontVariantNumeric: 'tabular-nums' }}>{formatLastUpdated(lastUpdated)}</span>
