@@ -23,6 +23,9 @@ import weatherAlerts from '../server/api/weather-alerts.js';
 import weather from '../server/api/weather.js';
 import webhook from '../server/api/webhook.js';
 import portfolio from '../server/api/portfolio.js';
+import watchlist from '../server/api/watchlist.js';
+import alerts from '../server/api/alerts.js';
+import portfolioHistory from '../server/api/portfolio-history.js';
 import brokerSignal from '../server/api/broker/signal.js';
 import brokerPositions from '../server/api/broker/positions.js';
 import brokerWebhook from '../server/api/broker/webhook.js';
@@ -54,6 +57,9 @@ const ROUTES = {
   weather,
   webhook,
   portfolio,
+  watchlist,
+  alerts,
+  'portfolio/history': portfolioHistory,
   'broker/signal': brokerSignal,
   'broker/positions': brokerPositions,
   'broker/webhook': brokerWebhook,
