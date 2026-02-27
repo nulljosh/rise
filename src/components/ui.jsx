@@ -66,6 +66,109 @@ export const StatusBar = ({ t, reliability }) => {
   );
 };
 
+// Mobile hamburger menu - glass dropdown overlay
+import { useState, useEffect, useCallback } from 'react';
+
+export const MobileMenu = ({ t, font, children }) => {
+  const [open, setOpen] = useState(false);
+
+  const close = useCallback(() => setOpen(false), []);
+
+  // Close on escape key
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (e.key === 'Escape') close(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [open, close]);
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <button
+        onClick={() => setOpen(!open)}
+        aria-label="Menu"
+        style={{
+          background: t.glass,
+          border: `1px solid ${t.border}`,
+          borderRadius: 6,
+          padding: '5px 8px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={t.textSecondary} strokeWidth="2" strokeLinecap="round">
+          {open
+            ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>
+            : <><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></>
+          }
+        </svg>
+      </button>
+      {open && (
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={close}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 998,
+            }}
+          />
+          {/* Dropdown */}
+          <div style={{
+            position: 'absolute',
+            top: 'calc(100% + 8px)',
+            right: 0,
+            minWidth: 180,
+            background: t.glass,
+            backdropFilter: 'blur(40px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+            border: `1px solid ${t.border}`,
+            borderRadius: 12,
+            padding: '8px 0',
+            zIndex: 999,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+            fontFamily: font,
+          }}>
+            {/* Wrap children to auto-close on click */}
+            <div onClick={close}>
+              {children}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+export const MobileMenuItem = ({ t, font, onClick, style, children }) => (
+  <button
+    onClick={onClick}
+    style={{
+      display: 'block',
+      width: '100%',
+      background: 'none',
+      border: 'none',
+      padding: '10px 16px',
+      color: t.textSecondary,
+      fontSize: 12,
+      fontWeight: 600,
+      fontFamily: font,
+      cursor: 'pointer',
+      textAlign: 'left',
+      ...style,
+    }}
+  >
+    {children}
+  </button>
+);
+
+export const MobileMenuDivider = ({ t }) => (
+  <div style={{ height: 1, background: t.border, margin: '4px 0' }} />
+);
+
 export const Card = ({ children, style, onClick, dark, t }) => (
   <div onClick={onClick} style={{
     background: t.glass,

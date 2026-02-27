@@ -7,7 +7,7 @@ import { defaultAssets } from './utils/assets';
 import { saveRun, getStats } from './utils/runHistory';
 import { calculateKelly, detectEdge } from './utils/trading';
 import { tldr } from './utils/helpers';
-import { StatusBar, Card } from './components/ui';
+import { StatusBar, Card, MobileMenu, MobileMenuItem, MobileMenuDivider } from './components/ui';
 import Ticker from './components/Ticker';
 import PricingPage from './components/PricingPage';
 import FinancePanel from './components/FinancePanel';
@@ -159,6 +159,13 @@ export default function App() {
   const font = '-apple-system, BlinkMacSystemFont, system-ui, sans-serif';
   const [showPricing, setShowPricing] = useState(false);
   const [showFinance, setShowFinance] = useState(false);
+  const [isMobileNav, setIsMobileNav] = useState(() => window.matchMedia('(max-width: 768px)').matches);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    const handler = (e) => setIsMobileNav(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
   const { isPro, isFree } = useSubscription();
   const { watchlist, addSymbol, removeSymbol, toggleSymbol } = useWatchlist(user);
   const weather = useWeather();
@@ -909,7 +916,7 @@ const reset = useCallback(() => {
           <span style={{ color: t.text, fontSize: 15, fontWeight: 700, letterSpacing: '-0.3px' }}>opticon</span>
           <span style={{ width: 1, height: 14, background: t.border, marginLeft: 8 }} />
           <StatusBar t={t} reliability={stocksReliability} />
-          {weather && (
+          {weather && !isMobileNav && (
             <>
               <span style={{ width: 1, height: 14, background: t.border }} />
               <span style={{ fontSize: 11, color: t.textSecondary, whiteSpace: 'nowrap' }}>
@@ -918,44 +925,81 @@ const reset = useCallback(() => {
             </>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 10, color: t.textTertiary, fontVariantNumeric: 'tabular-nums' }}>{formatLastUpdated(lastUpdated)}</span>
-          {pmError && <span style={{ fontSize: 9, color: t.red }}>API error</span>}
-          <span style={{ width: 1, height: 14, background: t.border }} />
-          <button
-            onClick={() => setShowFinance(true)}
-            style={{ background: t.glass, border: `1px solid ${t.border}`, borderRadius: 6, padding: '5px 10px', color: t.textSecondary, fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: font }}
-          >
-            PORTFOLIO
-          </button>
-          {isFree && (
+        {isMobileNav ? (
+          <MobileMenu t={t} font={font}>
+            {weather && (
+              <>
+                <MobileMenuItem t={t} font={font} style={{ color: t.textTertiary, fontSize: 11, cursor: 'default' }}>
+                  {weather.icon} {weather.temp}°C {weather.description}
+                </MobileMenuItem>
+                <MobileMenuDivider t={t} />
+              </>
+            )}
+            <MobileMenuItem t={t} font={font} style={{ color: t.textTertiary, fontSize: 10 }}>
+              {formatLastUpdated(lastUpdated)}
+            </MobileMenuItem>
+            {pmError && (
+              <MobileMenuItem t={t} font={font} style={{ color: t.red, fontSize: 10 }}>
+                API error
+              </MobileMenuItem>
+            )}
+            <MobileMenuDivider t={t} />
+            <MobileMenuItem t={t} font={font} onClick={() => setShowFinance(true)}>
+              PORTFOLIO
+            </MobileMenuItem>
+            {isFree && (
+              <MobileMenuItem t={t} font={font} onClick={() => setShowPricing(true)} style={{ color: '#0071e3' }}>
+                UPGRADE
+              </MobileMenuItem>
+            )}
+            <MobileMenuItem t={t} font={font} onClick={() => setDark(!dark)}>
+              {dark ? 'LIGHT MODE' : 'DARK MODE'}
+            </MobileMenuItem>
+            <MobileMenuDivider t={t} />
+            <MobileMenuItem t={t} font={font} onClick={logout} style={{ color: '#ef4444' }}>
+              LOGOUT
+            </MobileMenuItem>
+          </MobileMenu>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 10, color: t.textTertiary, fontVariantNumeric: 'tabular-nums' }}>{formatLastUpdated(lastUpdated)}</span>
+            {pmError && <span style={{ fontSize: 9, color: t.red }}>API error</span>}
+            <span style={{ width: 1, height: 14, background: t.border }} />
             <button
-              onClick={() => setShowPricing(true)}
-              style={{ background: '#0071e3', border: 'none', borderRadius: 6, padding: '5px 10px', color: '#fff', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}
+              onClick={() => setShowFinance(true)}
+              style={{ background: t.glass, border: `1px solid ${t.border}`, borderRadius: 6, padding: '5px 10px', color: t.textSecondary, fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: font }}
             >
-              UPGRADE
+              PORTFOLIO
             </button>
-          )}
-          <button
-            onClick={() => setDark(!dark)}
-            aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-            style={{ background: t.surface, border: 'none', borderRadius: 6, padding: 5, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.textSecondary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              {dark ? (
-                <><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></>
-              ) : (
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              )}
-            </svg>
-          </button>
-          <button
-            onClick={logout}
-            style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 6, padding: '5px 10px', color: '#ef4444', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: font }}
-          >
-            LOGOUT
-          </button>
-        </div>
+            {isFree && (
+              <button
+                onClick={() => setShowPricing(true)}
+                style={{ background: '#0071e3', border: 'none', borderRadius: 6, padding: '5px 10px', color: '#fff', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}
+              >
+                UPGRADE
+              </button>
+            )}
+            <button
+              onClick={() => setDark(!dark)}
+              aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+              style={{ background: t.surface, border: 'none', borderRadius: 6, padding: 5, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.textSecondary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                {dark ? (
+                  <><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></>
+                ) : (
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                )}
+              </svg>
+            </button>
+            <button
+              onClick={logout}
+              style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 6, padding: '5px 10px', color: '#ef4444', fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: font }}
+            >
+              LOGOUT
+            </button>
+          </div>
+        )}
       </header>
 
       <div style={{ position: 'relative', zIndex: 1, padding: 16, maxWidth: 1400, margin: '0 auto', flex: 1, pointerEvents: mapFocus ? 'none' : 'auto', opacity: mapFocus ? 0.58 : 1, transition: 'opacity 180ms ease' }}>
