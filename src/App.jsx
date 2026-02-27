@@ -904,12 +904,12 @@ const reset = useCallback(() => {
     }}>
       <LiveMapBackdrop dark={dark} />
       {/* Scrolling Ticker Tape (top-most UI row) */}
-      <div style={{ position: 'relative', zIndex: 1, pointerEvents: mapFocus ? 'none' : 'auto' }}>
+      <div style={{ position: 'relative', zIndex: 5, pointerEvents: mapFocus ? 'none' : 'auto' }}>
         <Ticker items={tickerItems} theme={t} />
       </div>
 
       {/* Header */}
-      <header style={{ position: 'relative', zIndex: 1, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${t.border}`, pointerEvents: 'auto' }}>
+      <header style={{ position: 'relative', zIndex: 5, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${t.border}`, pointerEvents: 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <a href="https://heyitsmejosh.com" style={{ color: t.textSecondary, textDecoration: 'none', fontSize: 13, fontWeight: 500 }}>~</a>
           <span style={{ color: t.textTertiary, fontSize: 13 }}>/</span>
@@ -1008,7 +1008,7 @@ const reset = useCallback(() => {
         )}
       </header>
 
-      <div style={{ position: 'relative', zIndex: 1, padding: 16, maxWidth: 1400, margin: '0 auto', flex: 1, pointerEvents: mapFocus ? 'none' : 'auto', opacity: mapFocus ? 0.58 : 1, transition: 'opacity 180ms ease' }}>
+      <div style={{ position: 'relative', zIndex: 4, padding: 16, maxWidth: 1400, margin: '0 auto', flex: 1, pointerEvents: mapFocus ? 'none' : 'auto', opacity: mapFocus ? 0.58 : 1, transition: 'opacity 180ms ease' }}>
 
         {/* HERO */}
         {!hideSimulator && (
@@ -1183,7 +1183,7 @@ const reset = useCallback(() => {
       })()}
 
       {/* Footer */}
-      <footer style={{ position: 'relative', zIndex: 1, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${t.border}`, fontSize: 11, color: t.textTertiary, pointerEvents: 'auto' }}>
+      <footer style={{ position: 'relative', zIndex: 5, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${t.border}`, fontSize: 11, color: t.textTertiary, pointerEvents: 'auto' }}>
         <span>MIT License</span>
         <span>&copy; 2026 &middot;{' '}<a href="https://heyitsmejosh.com" target="_blank" rel="noopener noreferrer" style={{ color: t.textSecondary, textDecoration: 'none', transition: 'color 0.15s' }} onMouseEnter={e => e.target.style.color = t.text} onMouseLeave={e => e.target.style.color = t.textSecondary}>Portfolio</a></span>
         <a href="https://github.com/nulljosh/opticon" target="_blank" rel="noopener noreferrer" style={{ color: t.textTertiary, textDecoration: 'none', transition: 'color 0.15s' }} onMouseEnter={e => e.target.style.color = t.text} onMouseLeave={e => e.target.style.color = t.textTertiary}>GitHub</a>

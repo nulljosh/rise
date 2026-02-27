@@ -88,7 +88,7 @@ export const MobileMenu = ({ t, font, children }) => {
         onClick={() => setOpen(!open)}
         aria-label="Menu"
         style={{
-          background: t.glass,
+          background: t.surface,
           border: `1px solid ${t.border}`,
           borderRadius: 6,
           padding: '5px 8px',
