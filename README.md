@@ -1,8 +1,14 @@
+<div align="center">
+
 # Opticon
+
+<img src="icon.svg" alt="Opticon" width="120" />
 
 Financial terminal and situation monitor. Live map, stock tickers, portfolio management, and prediction markets in one dashboard.
 
-**Live**: https://opticon.heyitsmejosh.com
+[opticon.heyitsmejosh.com](https://opticon.heyitsmejosh.com)
+
+</div>
 
 ## Architecture
 
