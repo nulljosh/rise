@@ -15,6 +15,7 @@ Financial terminal and situation monitor. Live map, stock tickers, portfolio man
 - Vercel KV (Upstash Redis) — auth, sessions, portfolio
 - FMP batch API + Yahoo Finance (chunked fallback)
 - Polymarket, GDELT, USGS, OSM, PredictHQ
+- GDELT GDoc API for live news feed (`/api/news`) — free, no auth, 15-min updates, server-side deduplication (Jaccard similarity + URL normalization), 30+ city geo-keyword matching for map markers
 - Stripe
 
 ## Dev

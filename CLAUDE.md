@@ -52,9 +52,11 @@ Opticon is a financial terminal app with:
 - Weather alerts: `/api/weather-alerts`
 - Crime data: `/api/crime`
 - Local events: `/api/local-events`
+- News feed: `/api/news` (GDELT GDoc API, free, no auth, 15-min update cycle, server-side deduplication via Jaccard similarity on titles + URL normalization, 30+ city geo-keyword matching)
 
 Notes:
-- Map overlays include traffic/construction/seismic/global-event/crime/local-event markers.
+- Map overlays include traffic/construction/seismic/global-event/crime/local-event/news markers.
+- News articles appear as blue markers on the map and in the SituationMonitor sidebar.
 - Local overlays refresh by current map viewport center.
 - Fallback markers are intentionally injected when upstream feeds are sparse, to avoid empty-city states.
 - Predictions are shown only when a confident geographic anchor is inferred.
