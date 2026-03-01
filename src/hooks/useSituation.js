@@ -57,7 +57,6 @@ export function useSituation() {
   const [weatherAlerts, setWeatherAlerts] = useState([]);
   const [crimeIncidents, setCrimeIncidents] = useState([]);
   const [localEvents, setLocalEvents] = useState([]);
-  const [news, setNews] = useState([]);
 
   const activeCenter = selectedCity
     ? { lat: selectedCity.lat, lon: selectedCity.lon, label: selectedCity.label }
@@ -148,13 +147,6 @@ export function useSituation() {
     } catch { /* non-critical */ }
   }, [activeCenter.lat, activeCenter.lon]);
 
-  const fetchNews = useCallback(async () => {
-    try {
-      const data = await fetchWithTimeout(apiPath(`/api/news?lat=${activeCenter.lat}&lon=${activeCenter.lon}`));
-      setNews(data.articles ?? []);
-    } catch { /* non-critical */ }
-  }, [activeCenter.lat, activeCenter.lon]);
-
   useEffect(() => {
     fetchFlights();
     fetchTraffic();
@@ -171,7 +163,6 @@ export function useSituation() {
     fetchWeatherAlerts();
     fetchCrime();
     fetchLocalEvents();
-    fetchNews();
     const si = setInterval(() => {
       fetchIncidents();
       fetchEarthquakes();
@@ -179,10 +170,9 @@ export function useSituation() {
       fetchWeatherAlerts();
       fetchCrime();
       fetchLocalEvents();
-      fetchNews();
     }, SITUATION_REFRESH);
     return () => clearInterval(si);
-  }, [fetchIncidents, fetchEarthquakes, fetchEvents, fetchWeatherAlerts, fetchCrime, fetchLocalEvents, fetchNews]);
+  }, [fetchIncidents, fetchEarthquakes, fetchEvents, fetchWeatherAlerts, fetchCrime, fetchLocalEvents]);
 
   return {
     userLocation, locationError,
@@ -191,7 +181,7 @@ export function useSituation() {
     worldCities: WORLD_CITIES,
     flights, flightsLoading, flightsError,
     traffic, trafficLoading, trafficError,
-    incidents, earthquakes, events, weatherAlerts, crimeIncidents, localEvents, news,
+    incidents, earthquakes, events, weatherAlerts, crimeIncidents, localEvents,
     refetchFlights: fetchFlights,
     refetchTraffic: fetchTraffic,
   };

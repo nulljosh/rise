@@ -1,33 +1,10 @@
-import { kv } from '@vercel/kv';
 import { supabaseRequest, supabaseConfigured } from './supabase.js';
-
-function parseCookies(req) {
-  const header = req.headers.cookie || '';
-  const cookies = {};
-  header.split(';').forEach(pair => {
-    const [key, ...rest] = pair.trim().split('=');
-    if (key) cookies[key] = rest.join('=');
-  });
-  return cookies;
-}
-
-async function getSessionUser(req) {
-  const cookies = parseCookies(req);
-  const token = cookies.opticon_session;
-  if (!token) return null;
-  const session = await kv.get(`session:${token}`);
-  if (!session) return null;
-  if (session.expiresAt && Date.now() > session.expiresAt) {
-    await kv.del(`session:${token}`);
-    return null;
-  }
-  return session;
-}
+import { getSessionUser, errorResponse } from './auth-helpers.js';
 
 export default async function handler(req, res) {
   const session = await getSessionUser(req);
-  if (!session) return res.status(401).json({ error: 'Authentication required' });
-  if (!supabaseConfigured()) return res.status(503).json({ error: 'Database not configured' });
+  if (!session) return errorResponse(res, 401, 'Authentication required');
+  if (!supabaseConfigured()) return errorResponse(res, 503, 'Database not configured');
 
   const email = session.email;
 
@@ -73,5 +50,5 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
   }
 
-  return res.status(405).json({ error: 'Method not allowed' });
+  return errorResponse(res, 405, 'Method not allowed');
 }

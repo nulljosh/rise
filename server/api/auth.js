@@ -1,6 +1,24 @@
 import { kv } from '@vercel/kv';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { parseCookies, getSessionUser, errorResponse } from './auth-helpers.js';
+
+// In-memory rate limiter for login attempts
+const loginAttempts = new Map();
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
+const RATE_LIMIT_MAX = 5;
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const entry = loginAttempts.get(ip);
+  if (!entry || now - entry.firstAttempt > RATE_LIMIT_WINDOW) {
+    loginAttempts.set(ip, { count: 1, firstAttempt: now });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count++;
+  return true;
+}
 
 const SESSION_TTL = 30 * 24 * 60 * 60; // 30 days
 const VERIFY_TTL = 24 * 60 * 60; // 24 hours
@@ -20,30 +38,6 @@ function clearSessionCookie(res) {
   res.setHeader('Set-Cookie', [
     'opticon_session=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax',
   ]);
-}
-
-function parseCookies(req) {
-  const header = req.headers.cookie || '';
-  const cookies = {};
-  header.split(';').forEach(pair => {
-    const [key, ...rest] = pair.trim().split('=');
-    if (key) cookies[key] = rest.join('=');
-  });
-  return cookies;
-}
-
-async function getSessionUser(req) {
-  const cookies = parseCookies(req);
-  const token = cookies.opticon_session;
-  if (!token) return null;
-
-  const session = await kv.get(`session:${token}`);
-  if (!session) return null;
-  if (session.expiresAt && Date.now() > session.expiresAt) {
-    await kv.del(`session:${token}`);
-    return null;
-  }
-  return session;
 }
 
 export default async function handler(req, res) {
@@ -70,7 +64,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return errorResponse(res, 405, 'Method not allowed');
   }
 
   // POST: register
@@ -122,7 +116,9 @@ export default async function handler(req, res) {
       ? `https://${process.env.VERCEL_URL}`
       : 'https://opticon-production.vercel.app';
     const verifyUrl = `${baseUrl}/api/auth?action=verify-email&token=${verifyToken}`;
-    console.log(`[AUTH] Verify email for ${email}: ${verifyUrl}`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[AUTH] Verify email for ${email}: ${verifyUrl}`);
+    }
 
     return res.status(201).json({
       ok: true,
@@ -133,6 +129,11 @@ export default async function handler(req, res) {
 
   // POST: login
   if (action === 'login') {
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+    if (!checkRateLimit(clientIp)) {
+      return res.status(429).json({ error: 'Too many login attempts. Try again in 15 minutes.' });
+    }
+
     const { email, password } = req.body || {};
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password required' });
@@ -208,5 +209,5 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
   }
 
-  return res.status(400).json({ error: 'Unknown action' });
+  return errorResponse(res, 400, 'Unknown action');
 }

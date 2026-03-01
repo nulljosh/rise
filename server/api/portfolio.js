@@ -1,28 +1,5 @@
 import { kv } from '@vercel/kv';
-
-function parseCookies(req) {
-  const header = req.headers.cookie || '';
-  const cookies = {};
-  header.split(';').forEach(pair => {
-    const [key, ...rest] = pair.trim().split('=');
-    if (key) cookies[key] = rest.join('=');
-  });
-  return cookies;
-}
-
-async function getSessionUser(req) {
-  const cookies = parseCookies(req);
-  const token = cookies.opticon_session;
-  if (!token) return null;
-
-  const session = await kv.get(`session:${token}`);
-  if (!session) return null;
-  if (session.expiresAt && Date.now() > session.expiresAt) {
-    await kv.del(`session:${token}`);
-    return null;
-  }
-  return session;
-}
+import { getSessionUser, errorResponse } from './auth-helpers.js';
 
 function validatePortfolioPayload(data) {
   if (!data || typeof data !== 'object') return { valid: false, error: 'Invalid data format' };
@@ -54,7 +31,7 @@ function validatePortfolioPayload(data) {
 export default async function handler(req, res) {
   const session = await getSessionUser(req);
   if (!session) {
-    return res.status(401).json({ error: 'Authentication required' });
+    return errorResponse(res, 401, 'Authentication required');
   }
 
   const { action } = req.query;
@@ -120,5 +97,5 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, updatedAt: payload.updatedAt });
   }
 
-  return res.status(400).json({ error: 'Unknown action. Use: get, update, summary' });
+  return errorResponse(res, 400, 'Unknown action. Use: get, update, summary');
 }

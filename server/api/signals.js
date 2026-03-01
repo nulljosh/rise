@@ -54,12 +54,16 @@ export default async function handler(req, res) {
     if (!sym || entry == null) {
       return res.status(400).json({ error: 'Missing required fields: sym, entry' });
     }
+    const price = parseFloat(entry);
+    if (!Number.isFinite(price) || price < 0 || price > 1e9) {
+      return res.status(400).json({ error: 'Invalid entry price' });
+    }
 
     const signal = {
       id: crypto.randomUUID(),
       ticker: sym.toUpperCase(),
       action: (action || 'buy').toLowerCase(),
-      price: parseFloat(entry),
+      price,
       qty: size != null ? parseFloat(size) : null,
       stop: stop != null ? parseFloat(stop) : null,
       target: target != null ? parseFloat(target) : null,

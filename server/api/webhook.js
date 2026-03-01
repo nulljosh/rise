@@ -63,7 +63,7 @@ export default async function handler(req, res) {
     }
     userId = resolved;
     console.log('[WEBHOOK] Authenticated user:', userId);
-  } else if (webhookSecret && providedSecret === webhookSecret) {
+  } else if (webhookSecret && providedSecret && crypto.timingSafeEqual(Buffer.from(providedSecret), Buffer.from(webhookSecret))) {
     userId = 'global';
   } else if (webhookSecret) {
     return res.status(401).json({ error: 'Unauthorized: invalid secret' });

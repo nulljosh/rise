@@ -1,20 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import handler from '../../server/api/news.js';
 
-// The handler uses a module-level cache Map. We need a fresh module per test
-// to avoid cache leaking between tests. Dynamic import with query string busts vitest's cache.
-let handler;
-let testId = 0;
-
-beforeEach(async () => {
+beforeEach(() => {
   vi.resetAllMocks();
   global.fetch = vi.fn();
-  // Bust module cache so the in-memory `cache` Map starts empty each test
-  const mod = await import(`../../server/api/news.js?t=${++testId}`);
-  handler = mod.default;
 });
 
 const mockOk = (body) => ({ ok: true, json: async () => body });
-const mockFail = (status = 500) => ({ ok: false, status });
 
 function makeGdeltArticle(overrides = {}) {
   return {
@@ -30,6 +22,10 @@ function makeGdeltArticle(overrides = {}) {
   };
 }
 
+// Each test gets a unique category to avoid module-level cache collisions
+let nextCat = 0;
+function uniqueCategory() { return `test-cat-${++nextCat}`; }
+
 function makeReqRes(query = {}) {
   let statusCode = 200;
   let jsonData = null;
@@ -38,6 +34,7 @@ function makeReqRes(query = {}) {
     json: vi.fn((data) => { jsonData = data; return res; }),
     setHeader: vi.fn(),
   };
+  if (!query.category) query.category = uniqueCategory();
   return {
     req: {
       method: 'GET',
@@ -52,8 +49,6 @@ function makeReqRes(query = {}) {
 
 describe('news API handler', () => {
 
-  // --- Method validation ---
-
   it('returns 405 for non-GET requests', async () => {
     const { req, res, status, data } = makeReqRes();
     req.method = 'POST';
@@ -63,8 +58,6 @@ describe('news API handler', () => {
     expect(status()).toBe(405);
     expect(data().error).toMatch(/not allowed/i);
   });
-
-  // --- Happy path ---
 
   it('returns 200 with { articles: [] } shape on success', async () => {
     const { req, res, status, data } = makeReqRes();
@@ -109,8 +102,6 @@ describe('news API handler', () => {
     expect(article).toHaveProperty('publishedAt');
   });
 
-  // --- Deduplication ---
-
   it('deduplicates articles with similar titles', async () => {
     const { req, res, data } = makeReqRes();
     global.fetch = vi.fn(() => Promise.resolve(mockOk({
@@ -123,11 +114,8 @@ describe('news API handler', () => {
 
     await handler(req, res);
 
-    // The first two are near-duplicates (Jaccard >= 0.6), so one gets dropped
     expect(data().articles.length).toBe(2);
   });
-
-  // --- URL normalization ---
 
   it('normalizes URLs by stripping tracking params', async () => {
     const { req, res, data } = makeReqRes();
@@ -149,8 +137,6 @@ describe('news API handler', () => {
     // Both URLs normalize to example.com/article?id=123, so second is deduped
     expect(data().articles.length).toBe(1);
   });
-
-  // --- Geo extraction ---
 
   it('extracts geo coordinates from GDELT sourcelat/sourcelon', async () => {
     const { req, res, data } = makeReqRes();
@@ -179,12 +165,9 @@ describe('news API handler', () => {
 
     await handler(req, res);
 
-    // Should match Tokyo coordinates (35.6762, 139.6503)
     expect(data().articles[0].lat).toBeCloseTo(35.6762, 3);
     expect(data().articles[0].lon).toBeCloseTo(139.6503, 3);
   });
-
-  // --- Error handling ---
 
   it('returns 502 when GDELT is unreachable', async () => {
     const { req, res, status, data } = makeReqRes();
@@ -197,20 +180,17 @@ describe('news API handler', () => {
     expect(data().articles).toEqual([]);
   });
 
-  // --- Caching ---
-
   it('uses cache on second call within 5 minutes', async () => {
+    const cat = uniqueCategory();
     const article = makeGdeltArticle();
     global.fetch = vi.fn(() => Promise.resolve(mockOk({ articles: [article] })));
 
-    // First call -- hits GDELT
-    const call1 = makeReqRes();
+    const call1 = makeReqRes({ category: cat });
     await handler(call1.req, call1.res);
     expect(call1.status()).toBe(200);
     expect(global.fetch).toHaveBeenCalledTimes(1);
 
-    // Second call -- should use cache, fetch not called again
-    const call2 = makeReqRes();
+    const call2 = makeReqRes({ category: cat });
     await handler(call2.req, call2.res);
     expect(call2.status()).toBe(200);
     expect(global.fetch).toHaveBeenCalledTimes(1);
